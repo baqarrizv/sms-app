@@ -11,7 +11,7 @@ $user     = currentUser();
 $selected = $_POST['selected'] ?? [];
 
 if (empty($selected)) {
-    $_SESSION['flash'] = ['type' => 'error', 'msg' => 'Koi record select nahi tha.'];
+    $_SESSION['flash'] = ['type' => 'error', 'msg' => 'No records were selected.'];
     header('Location: dashboard.php');
     exit;
 }
@@ -43,7 +43,7 @@ foreach ($selected as $idx) {
 
 $_SESSION['flash'] = [
     'type' => 'success',
-    'msg'  => "$inserted records SMS table mein insert ho gaye." . ($skipped ? " ($skipped skip hue empty records)" : '')
+    'msg'  => "$inserted records inserted into SMS table." . ($skipped ? " ($skipped empty records skipped)" : '')
 ];
 
 header('Location: sms-list.php');

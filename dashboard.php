@@ -12,11 +12,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['drive_file'])) {
     $file = $_FILES['drive_file'];
 
     if ($file['error'] !== UPLOAD_ERR_OK) {
-        $error = 'File upload failed. Dobara try karein.';
+        $error = 'File upload failed. Please try again.';
     } else {
         $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
         if (!in_array($ext, ['csv', 'xlsx', 'xls'])) {
-            $error = 'Sirf CSV ya Excel file allowed hai.';
+            $error = 'Only CSV or Excel files are allowed.';
         } else {
             $dest = UPLOAD_DIR . 'upload_' . time() . '.' . $ext;
             if (move_uploaded_file($file['tmp_name'], $dest)) {
@@ -25,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['drive_file'])) {
                 header('Location: dashboard.php');
                 exit;
             } else {
-                $error = 'File save karne mein masla hua.';
+                $error = 'There was a problem saving the file.';
             }
         }
     }
@@ -567,7 +567,7 @@ try {
   <?php endif; ?>
 
   <?php if (isset($_GET['cleared'])): ?>
-  <div class="alert alert-success">✓ File clear ho gayi.</div>
+  <div class="alert alert-success">✓ File cleared successfully.</div>
   <?php endif; ?>
 
   <!-- Upload Section -->
@@ -584,7 +584,7 @@ try {
         <input type="file" name="drive_file" id="fileInput" accept=".csv,.xlsx,.xls" onchange="updateFileName(this)">
         <div class="drop-icon">☁️</div>
         <div class="drop-text">
-          <strong>Click ya drag karein</strong> — CSV ya Excel file<br>
+          <strong>Click or drag here</strong> — CSV ya Excel file<br>
           <span style="font-size:0.75rem;opacity:0.6">Columns: phone/number, msg/message</span>
         </div>
       </div>
@@ -594,7 +594,7 @@ try {
           <?php if ($fileInfo): ?>
           📄 <span><?= htmlspecialchars($fileInfo) ?></span>
           <?php else: ?>
-          📄 <span style="opacity:0.4">Koi file select nahi</span>
+          📄 <span style="opacity:0.4">No file selected</span>
           <?php endif; ?>
         </div>
         <button type="submit" class="btn btn-primary">⬆ Upload & Parse</button>
@@ -614,7 +614,7 @@ try {
       <div class="table-toolbar">
         <div style="display:flex;align-items:center;gap:0.8rem;">
           <label style="display:flex;align-items:center;gap:0.4rem;font-size:0.8rem;cursor:pointer;color:var(--muted);">
-            <input type="checkbox" id="checkAll"> Sab Select
+            <input type="checkbox" id="checkAll"> Select All
           </label>
           <span class="selected-badge" id="selBadge2">0 selected</span>
         </div>
@@ -656,10 +656,10 @@ try {
 
       <div class="action-bar">
         <div class="action-info">
-          <strong id="selCount">0</strong> records selected — insert ho jayenge SMS table mein
+          <strong id="selCount">0</strong> records selected — will be inserted into SMS table
         </div>
         <button type="submit" class="btn btn-success" id="insertBtn" disabled>
-          🚀 Selected SMS Insert Karein
+          🚀 Insert Selected SMS
         </button>
       </div>
     </div>
@@ -670,7 +670,7 @@ try {
   <div class="table-card">
     <div class="empty-state">
       <div class="empty-icon">📂</div>
-      <p>Pehle ek CSV ya Excel file upload karein<br>phir records yahaan dikhenge</p>
+      <p>Upload a CSV or Excel file first<br>then records will appear here</p>
     </div>
   </div>
   <?php endif; ?>
@@ -738,7 +738,7 @@ if (smsForm) {
   smsForm.addEventListener('submit', function(e) {
     const checked = document.querySelectorAll('.row-check:checked').length;
     if (checked === 0) { e.preventDefault(); return; }
-    if (!confirm(checked + ' records SMS table mein insert honge. Confirm?')) e.preventDefault();
+    if (!confirm(checked + ' records will be inserted into SMS table. Confirm?')) e.preventDefault();
   });
 }
 </script>

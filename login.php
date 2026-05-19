@@ -14,7 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = trim($_POST['password'] ?? '');
 
     if (!$email || !$password) {
-        $error = 'Email aur password dono zaroori hain.';
+        $error = 'Both email and password are required.';
     } else {
         try {
             $db   = getDB();
@@ -32,10 +32,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 header('Location: dashboard.php');
                 exit;
             } else {
-                $error = 'Email ya password galat hai.';
+                $error = 'Invalid email or password.';
             }
         } catch (Exception $e) {
-            $error = 'Database error. Pehle setup.php run karein.';
+            $error = 'Database error. Run setup.php first.';
         }
     }
 }
@@ -302,7 +302,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   </div>
 
   <p class="footer-note">
-    Pehli baar? <a href="setup.php" style="color:var(--accent);text-decoration:none">setup.php</a> pehle run karein
+    First time? Run <a href="setup.php" style="color:var(--accent);text-decoration:none">setup.php</a> first
   </p>
 </div>
 </body>

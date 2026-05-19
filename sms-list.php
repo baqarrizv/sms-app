@@ -222,9 +222,9 @@ function statusBadge(string $status): string {
   <div class="page-header">
     <div>
       <div class="page-title">📋 SMS Records</div>
-      <div class="page-sub">Saare inserted SMS records</div>
+      <div class="page-sub">All inserted SMS records</div>
     </div>
-    <a href="dashboard.php" class="btn btn-primary">+ Nayi File Upload</a>
+    <a href="dashboard.php" class="btn btn-primary">+ Upload New File</a>
   </div>
 
   <?php if ($flash): ?>
@@ -240,7 +240,7 @@ function statusBadge(string $status): string {
     </div>
     <div class="filter-group">
       <select name="status">
-        <option value="">Status: Sab</option>
+        <option value="">Status: All</option>
         <option value="pending"  <?= $statusFilter === 'pending'  ? 'selected' : '' ?>>Pending</option>
         <option value="sent"     <?= $statusFilter === 'sent'     ? 'selected' : '' ?>>Sent</option>
         <option value="failed"   <?= $statusFilter === 'failed'   ? 'selected' : '' ?>>Failed</option>
@@ -248,7 +248,7 @@ function statusBadge(string $status): string {
     </div>
     <div class="filter-group">
       <select name="current_status">
-        <option value="">Current: Sab</option>
+        <option value="">Current: All</option>
         <option value="queued"     <?= $cStatusFilter === 'queued'     ? 'selected' : '' ?>>Queued</option>
         <option value="processing" <?= $cStatusFilter === 'processing' ? 'selected' : '' ?>>Processing</option>
         <option value="done"       <?= $cStatusFilter === 'done'       ? 'selected' : '' ?>>Done</option>
@@ -325,7 +325,7 @@ function statusBadge(string $status): string {
     <?php else: ?>
     <div class="empty-state">
       <div class="empty-icon">📭</div>
-      <p>Koi SMS record nahi mila<?= ($search || $statusFilter || $cStatusFilter) ? ' — filters clear karein' : '' ?></p>
+      <p>No SMS records found<?= ($search || $statusFilter || $cStatusFilter) ? ' — clear filters to see more results' : '' ?></p>
     </div>
     <?php endif; ?>
   </div>
