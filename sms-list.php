@@ -3,13 +3,27 @@ require_once 'includes/config.php';
 requireLogin();
 
 $user = currentUser();
+$flash = null;
 
-// Pagination
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'change_status') {
+    $ids = $_POST['selected'] ?? [];
+    $newStatus = $_POST['new_current_status'] ?? '';
+    if (!empty($ids) && in_array($newStatus, ['failed','pending', 'stop'])) {
+        $db = getDB();
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $stmt = $db->prepare("UPDATE sms SET current_status = ?, activity_at = NOW() WHERE id IN ($placeholders)");
+        $params = array_merge([$newStatus], $ids);
+        $stmt->execute($params);
+        $flash = ['type' => 'success', 'msg' => count($ids) . ' record(s) updated to ' . ucfirst($newStatus) . '.'];
+    } else {
+        $flash = ['type' => 'error', 'msg' => 'No records selected or invalid status.'];
+    }
+}
+
 $perPage = 25;
 $page    = max(1, (int)($_GET['page'] ?? 1));
 $offset  = ($page - 1) * $perPage;
 
-// Filters
 $statusFilter  = $_GET['status']         ?? '';
 $cStatusFilter = $_GET['current_status'] ?? '';
 $search        = trim($_GET['search']    ?? '');
@@ -44,19 +58,19 @@ $stmt = $db->prepare("
 $stmt->execute($params);
 $records = $stmt->fetchAll();
 
-// Flash message
-$flash = $_SESSION['flash'] ?? null;
-unset($_SESSION['flash']);
+if ($flash === null) {
+    $flash = $_SESSION['flash'] ?? null;
+    unset($_SESSION['flash']);
+}
 
-// Status helpers
 function statusBadge(string $status): string {
     $map = [
         'pending'    => ['label' => 'Pending',    'color' => '#fbbf24'],
-        'sent'       => ['label' => 'Sent',        'color' => '#4ade80'],
-        'failed'     => ['label' => 'Failed',      'color' => '#f76a8a'],
-        'queued'     => ['label' => 'Queued',      'color' => '#7c6af7'],
         'processing' => ['label' => 'Processing',  'color' => '#38bdf8'],
-        'done'       => ['label' => 'Done',        'color' => '#4ade80'],
+        'sent'       => ['label' => 'Sent',        'color' => '#4ade80'],
+        'stop'       => ['label' => 'Stopped',     'color' => '#f76a8a'],
+        'active'     => ['label' => 'Active',      'color' => '#4ade80'],
+        'inactive'   => ['label' => 'Inactive',    'color' => '#f76a8a'],
     ];
     $s = $map[$status] ?? ['label' => ucfirst($status), 'color' => '#5a5a72'];
     return "<span class='badge' style='--bc:{$s['color']}'>{$s['label']}</span>";
@@ -84,6 +98,7 @@ function statusBadge(string $status): string {
     --muted:    #5a5a72;
     --success:  #4ade80;
     --error:    #f76a8a;
+    --warning:  #fbbf24;
     --body:     'Lato', sans-serif;
     --heading:  'Lato', sans-serif;
   }
@@ -117,24 +132,20 @@ function statusBadge(string $status): string {
 
   main { max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem; }
 
-  /* Page header */
   .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
   .page-title  { font-family: var(--heading); font-size: 1.5rem; font-weight: 700; letter-spacing: 0.01em; }
   .page-sub    { color: var(--muted); font-size: 0.9rem; margin-top: 0.3rem; }
 
-  /* Alert */
   .alert { padding: 0.9rem 1.2rem; border-radius: 10px; font-size: 0.95rem; line-height: 1.5; margin-bottom: 1.2rem; display: flex; align-items: center; gap: 0.5rem; }
   .alert-error   { background: rgba(247,106,138,0.08); border: 1px solid rgba(247,106,138,0.25); color: var(--error); }
   .alert-success { background: rgba(74,222,128,0.08);  border: 1px solid rgba(74,222,128,0.25);  color: var(--success); }
 
-  /* Filters */
   .filters {
     background: var(--surface); border: 1px solid var(--border);
     border-radius: 14px; padding: 1rem 1.2rem;
     display: flex; gap: 0.8rem; flex-wrap: wrap; align-items: center;
     margin-bottom: 1.2rem;
   }
-
   .filter-group { display: flex; align-items: center; gap: 0.5rem; }
 
   input[type="text"], select {
@@ -151,9 +162,39 @@ function statusBadge(string $status): string {
   .btn-primary { background: linear-gradient(135deg, var(--accent), #9d8cf8); color: #fff; }
   .btn-ghost   { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
   .btn-ghost:hover { color: var(--text); }
+  .btn-warning { background: linear-gradient(135deg, #f59e0b, #fbbf24); color: #060608; }
+  .btn-danger  { background: linear-gradient(135deg, #ef4444, #f76a8a); color: #fff; }
 
-  /* Table */
   .table-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; animation: fadeIn 0.4s ease both; }
+
+  .table-toolbar {
+    padding: 0.8rem 1.2rem;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 0.8rem;
+  }
+  .table-toolbar-left { display: flex; align-items: center; gap: 0.8rem; }
+  .table-toolbar-right { display: flex; align-items: center; gap: 0.8rem; }
+  .toolbar-label { font-size: 0.9rem; color: var(--muted); font-weight: 500; }
+
+  .action-bar {
+    padding: 0.8rem 1.2rem;
+    border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 0.8rem;
+    background: var(--surface2);
+  }
+  .action-info { font-size: 0.95rem; color: var(--muted); font-weight: 500; }
+  .action-info strong { color: var(--text); }
+  .action-buttons { display: flex; align-items: center; gap: 0.5rem; }
+  .action-buttons select { font-size: 0.85rem; padding: 0.45rem 0.7rem; }
+
+  .sel-badge {
+    font-size: 0.85rem; font-weight: 600; color: var(--accent);
+    background: rgba(124,106,247,0.1); border: 1px solid rgba(124,106,247,0.2);
+    padding: 0.25rem 0.7rem; border-radius: 20px; display: none;
+  }
+  .sel-badge.visible { display: inline-block; }
 
   .table-meta { padding: 1rem 1.2rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; font-size: 0.85rem; color: var(--muted); }
   .table-meta strong { color: var(--text); }
@@ -166,6 +207,9 @@ function statusBadge(string $status): string {
   td { padding: 0.8rem 1rem; border-bottom: 1px solid var(--border); color: var(--text); vertical-align: middle; line-height: 1.5; }
   tr:last-child td { border-bottom: none; }
   tbody tr:hover td { background: rgba(255,255,255,0.015); }
+  tr.selected td { background: rgba(124,106,247,0.05); }
+
+  input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; }
 
   .td-id     { color: var(--muted); font-size: 0.85rem; }
   .td-number { font-weight: 600; letter-spacing: 0.02em; font-size: 0.95rem; }
@@ -175,25 +219,16 @@ function statusBadge(string $status): string {
   .td-at     { color: var(--muted); font-size: 0.85rem; white-space: nowrap; }
 
   .badge {
-    display: inline-block;
-    padding: 0.3rem 0.75rem;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    background: rgba(from var(--bc) r g b / 0.12);
-    color: var(--bc);
-    border: 1px solid rgba(from var(--bc) r g b / 0.25);
+    display: inline-block; padding: 0.3rem 0.75rem; border-radius: 20px;
+    font-size: 0.8rem; font-weight: 600;
+    background-color: color-mix(in srgb, var(--bc) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--bc) 25%, transparent);
     white-space: nowrap;
   }
 
-  /* Fallback for browsers without relative color syntax */
-  .badge { background-color: color-mix(in srgb, var(--bc) 12%, transparent); border-color: color-mix(in srgb, var(--bc) 25%, transparent); }
-
-  /* Empty */
   .empty-state { text-align: center; padding: 4rem 2rem; color: var(--muted); font-size: 1rem; }
   .empty-state .empty-icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.4; }
 
-  /* Pagination */
   .pagination { display: flex; align-items: center; justify-content: center; gap: 0.4rem; padding: 1.2rem; border-top: 1px solid var(--border); flex-wrap: wrap; }
   .page-btn { padding: 0.5rem 0.9rem; border-radius: 7px; text-decoration: none; font-size: 0.9rem; font-weight: 500; color: var(--muted); border: 1px solid var(--border); background: var(--surface2); transition: all 0.15s; }
   .page-btn:hover  { color: var(--text); border-color: var(--accent); }
@@ -234,25 +269,24 @@ function statusBadge(string $status): string {
   </div>
   <?php endif; ?>
 
-  <!-- Filters -->
   <form method="GET" class="filters">
     <div class="filter-group">
-      <input type="text" name="search" placeholder="🔍 Number ya message..." value="<?= htmlspecialchars($search) ?>">
+      <input type="text" name="search" placeholder="🔍 Number or message..." value="<?= htmlspecialchars($search) ?>">
     </div>
     <div class="filter-group">
       <select name="status">
         <option value="">Status: All</option>
-        <option value="pending"  <?= $statusFilter === 'pending'  ? 'selected' : '' ?>>Pending</option>
-        <option value="sent"     <?= $statusFilter === 'sent'     ? 'selected' : '' ?>>Sent</option>
-        <option value="failed"   <?= $statusFilter === 'failed'   ? 'selected' : '' ?>>Failed</option>
+        <option value="active"   <?= $statusFilter === 'active'   ? 'selected' : '' ?>>Active</option>
+        <option value="inactive" <?= $statusFilter === 'inactive' ? 'selected' : '' ?>>Inactive</option>
       </select>
     </div>
     <div class="filter-group">
       <select name="current_status">
         <option value="">Current: All</option>
-        <option value="queued"     <?= $cStatusFilter === 'queued'     ? 'selected' : '' ?>>Queued</option>
+        <option value="pending"    <?= $cStatusFilter === 'pending'    ? 'selected' : '' ?>>Pending</option>
         <option value="processing" <?= $cStatusFilter === 'processing' ? 'selected' : '' ?>>Processing</option>
-        <option value="done"       <?= $cStatusFilter === 'done'       ? 'selected' : '' ?>>Done</option>
+        <option value="sent"       <?= $cStatusFilter === 'sent'       ? 'selected' : '' ?>>Sent</option>
+        <option value="stop"       <?= $cStatusFilter === 'stop'       ? 'selected' : '' ?>>Stopped</option>
       </select>
     </div>
     <button type="submit" class="btn btn-primary">Filter</button>
@@ -261,75 +295,166 @@ function statusBadge(string $status): string {
     <?php endif; ?>
   </form>
 
-  <!-- Table -->
+  <?php if (!empty($records)): ?>
+  <form method="POST" id="smsForm">
+    <input type="hidden" name="action" value="change_status">
+    <div class="table-card">
+      <div class="table-toolbar">
+        <div class="table-toolbar-left">
+          <label class="toolbar-label">
+            <input type="checkbox" id="checkAll"> Select All
+          </label>
+          <span class="sel-badge" id="selBadge">0 selected</span>
+        </div>
+        <div class="table-toolbar-right">
+          <span style="font-size:0.9rem;color:var(--muted);font-weight:500;">Total: <strong style="color:var(--text)"><?= count($records) ?></strong> records</span>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:44px"></th>
+              <th>ID</th>
+              <th>Number</th>
+              <th>Message</th>
+              <th>Current Status</th>
+              <th>Status</th>
+              <th>Ref ID</th>
+              <th>By</th>
+              <th>At</th>
+            </tr>
+          </thead>
+          <tbody id="recordsBody">
+            <?php foreach ($records as $r):
+              $canChange = in_array($r['current_status'], ['failed', 'pending', 'stop']);
+            ?>
+            <tr data-id="<?= $r['id'] ?>" class="row-tr <?= $canChange ? 'can-change' : '' ?>">
+              <td>
+                <?php if ($canChange): ?>
+                <input type="checkbox" name="selected[]" value="<?= $r['id'] ?>" class="row-check">
+                <?php endif; ?>
+              </td>
+              <td class="td-id">#<?= $r['id'] ?></td>
+              <td class="td-number"><?= htmlspecialchars($r['number']) ?></td>
+              <td class="td-msg" title="<?= htmlspecialchars($r['msg']) ?>"><?= htmlspecialchars($r['msg']) ?></td>
+              <td><?= statusBadge($r['current_status']) ?></td>
+              <td><?= statusBadge($r['status']) ?></td>
+              <td class="td-ref"><?= $r['sms_reference_id'] ? htmlspecialchars($r['sms_reference_id']) : '<span style="opacity:0.3">—</span>' ?></td>
+              <td class="td-by"><?= htmlspecialchars($r['user_name'] ?? '—') ?></td>
+              <td class="td-at"><?= date('d M Y H:i', strtotime($r['activity_at'])) ?></td>
+            </tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="action-bar">
+        <div class="action-info">
+          <strong id="selCount">0</strong> records selected
+        </div>
+        <div class="action-buttons">
+          <select name="new_current_status" id="newStatus">
+            <option value="">Set status to...</option>
+            <option value="pending">Pending</option>
+            <option value="stop">Stop</option>
+          </select>
+          <button type="submit" class="btn btn-warning" id="changeBtn" disabled>Update Selected</button>
+        </div>
+      </div>
+    </div>
+  </form>
+
+  <!-- Pagination -->
+  <?php if ($pages > 1): ?>
+  <div style="margin-top:1.2rem;">
+    <div class="table-card">
+      <div class="pagination">
+        <?php
+          $qs = http_build_query(['search' => $search, 'status' => $statusFilter, 'current_status' => $cStatusFilter]);
+          $qs = $qs ? "&$qs" : '';
+        ?>
+        <a href="?page=<?= $page - 1 . $qs ?>" class="page-btn <?= $page <= 1 ? 'disabled' : '' ?>">← Prev</a>
+        <?php
+          $start = max(1, $page - 2);
+          $end   = min($pages, $page + 2);
+          if ($start > 1)  echo "<a href='?page=1$qs' class='page-btn'>1</a>" . ($start > 2 ? "<span style='color:var(--muted);padding:0 0.3rem'>…</span>" : '');
+          for ($p = $start; $p <= $end; $p++) {
+              echo "<a href='?page=$p$qs' class='page-btn " . ($p === $page ? 'active' : '') . "'>$p</a>";
+          }
+          if ($end < $pages) echo ($end < $pages - 1 ? "<span style='color:var(--muted);padding:0 0.3rem'>…</span>" : '') . "<a href='?page=$pages$qs' class='page-btn'>$pages</a>";
+        ?>
+        <a href="?page=<?= $page + 1 . $qs ?>" class="page-btn <?= $page >= $pages ? 'disabled' : '' ?>">Next →</a>
+      </div>
+    </div>
+  </div>
+  <?php endif; ?>
+
+  <?php else: ?>
   <div class="table-card">
-    <div class="table-meta">
-      <span>Total: <strong><?= number_format($total) ?></strong> records</span>
-      <span>Page <strong><?= $page ?></strong> / <strong><?= max(1, $pages) ?></strong></span>
-    </div>
-
-    <?php if (!empty($records)): ?>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Number</th>
-            <th>Message</th>
-            <th>Current Status</th>
-            <th>Status</th>
-            <th>Ref ID</th>
-            <th>By</th>
-            <th>At</th>
-          </tr>
-        </thead>
-        <tbody>
-          <?php foreach ($records as $r): ?>
-          <tr>
-            <td class="td-id">#<?= $r['id'] ?></td>
-            <td class="td-number"><?= htmlspecialchars($r['number']) ?></td>
-            <td class="td-msg" title="<?= htmlspecialchars($r['msg']) ?>"><?= htmlspecialchars($r['msg']) ?></td>
-            <td><?= statusBadge($r['current_status']) ?></td>
-            <td><?= statusBadge($r['status']) ?></td>
-            <td class="td-ref"><?= $r['sms_reference_id'] ? htmlspecialchars($r['sms_reference_id']) : '<span style="opacity:0.3">—</span>' ?></td>
-            <td class="td-by"><?= htmlspecialchars($r['user_name'] ?? '—') ?></td>
-            <td class="td-at"><?= date('d M Y H:i', strtotime($r['activity_at'])) ?></td>
-          </tr>
-          <?php endforeach; ?>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Pagination -->
-    <?php if ($pages > 1): ?>
-    <div class="pagination">
-      <?php
-        $qs = http_build_query(['search' => $search, 'status' => $statusFilter, 'current_status' => $cStatusFilter]);
-        $qs = $qs ? "&$qs" : '';
-      ?>
-      <a href="?page=<?= $page - 1 . $qs ?>" class="page-btn <?= $page <= 1 ? 'disabled' : '' ?>">← Prev</a>
-
-      <?php
-        $start = max(1, $page - 2);
-        $end   = min($pages, $page + 2);
-        if ($start > 1)  echo "<a href='?page=1$qs' class='page-btn'>1</a>" . ($start > 2 ? "<span style='color:var(--muted);padding:0 0.3rem'>…</span>" : '');
-        for ($p = $start; $p <= $end; $p++) {
-            echo "<a href='?page=$p$qs' class='page-btn " . ($p === $page ? 'active' : '') . "'>$p</a>";
-        }
-        if ($end < $pages) echo ($end < $pages - 1 ? "<span style='color:var(--muted);padding:0 0.3rem'>…</span>" : '') . "<a href='?page=$pages$qs' class='page-btn'>$pages</a>";
-      ?>
-
-      <a href="?page=<?= $page + 1 . $qs ?>" class="page-btn <?= $page >= $pages ? 'disabled' : '' ?>">Next →</a>
-    </div>
-    <?php endif; ?>
-
-    <?php else: ?>
     <div class="empty-state">
       <div class="empty-icon">📭</div>
       <p>No SMS records found<?= ($search || $statusFilter || $cStatusFilter) ? ' — clear filters to see more results' : '' ?></p>
     </div>
-    <?php endif; ?>
   </div>
+  <?php endif; ?>
 </main>
+
+<script>
+const checkAll  = document.getElementById('checkAll');
+const selCount  = document.getElementById('selCount');
+const selBadge  = document.getElementById('selBadge');
+const changeBtn = document.getElementById('changeBtn');
+const smsForm   = document.getElementById('smsForm');
+const newStatus = document.getElementById('newStatus');
+
+function updateCount() {
+  const checked = document.querySelectorAll('.row-check:checked').length;
+  selCount.textContent  = checked;
+  selBadge.textContent  = checked + ' selected';
+  selBadge.classList.toggle('visible', checked > 0);
+  changeBtn.disabled    = checked === 0 || !newStatus.value;
+
+  document.querySelectorAll('.row-check').forEach(cb => {
+    cb.closest('tr').classList.toggle('selected', cb.checked);
+  });
+}
+
+if (checkAll) {
+  checkAll.addEventListener('change', function() {
+    document.querySelectorAll('.row-check').forEach(cb => { cb.checked = this.checked; });
+    updateCount();
+  });
+}
+
+document.querySelectorAll('.row-check').forEach(cb => {
+  cb.addEventListener('change', function() {
+    const total   = document.querySelectorAll('.row-check').length;
+    const checked = document.querySelectorAll('.row-check:checked').length;
+    if (checkAll) checkAll.checked = checked === total;
+    updateCount();
+  });
+});
+
+if (newStatus) {
+  newStatus.addEventListener('change', updateCount);
+}
+
+if (smsForm) {
+  smsForm.addEventListener('submit', function(e) {
+    const checked = document.querySelectorAll('.row-check:checked').length;
+    if (checked === 0) { e.preventDefault(); return; }
+    if (!newStatus.value) {
+      e.preventDefault();
+      alert('Please select a status to set.');
+      return;
+    }
+    if (!confirm(checked + ' record(s) will be set to "' + newStatus.value + '". Continue?')) {
+      e.preventDefault();
+    }
+  });
+}
+</script>
 </body>
 </html>
