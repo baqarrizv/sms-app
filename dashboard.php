@@ -521,7 +521,7 @@ try {
 </head>
 <body>
 <nav>
-  <a href="dashboard.php" class="nav-brand">📨 <span>SMS</span>Manager</a>
+  <a href="dashboard.php" class="nav-brand">📨 <span>SIMSIN SMS</span>Manager</a>
   <div class="nav-right">
     <div class="nav-links">
       <a href="dashboard.php" class="nav-link active">📁 Upload</a>
@@ -573,7 +573,7 @@ try {
   <!-- Upload Section -->
   <div class="upload-card">
     <div class="section-head">
-      <div class="section-title">📁 Google Drive File Upload</div>
+      <div class="section-title">📁 File Upload</div>
       <?php if ($fileInfo): ?>
       <a href="clear-file.php" class="btn btn-ghost" style="font-size:0.75rem;">✕ File Clear</a>
       <?php endif; ?>

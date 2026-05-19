@@ -7,8 +7,11 @@ define('DB_NAME', 'sms_app');
 
 
 // App Configuration
-define('APP_NAME', 'SMS Manager');
+define('APP_NAME', 'SIMSIN SMS Manager');
 define('UPLOAD_DIR', __DIR__ . '/../uploads/');
+define('SMS_FROM', '88107');
+define('SMS_API_KEY', 'sad.eyJ1c2VybmFtZSI6IlNJTVNJTiIsImlhdCI6MTczMzcyOTc5N30.VdgnBZTPrwSEmpOlakNqdAcgzq8bCYJJqXwbwC5jMpU');
+define('SMS_API_URL', 'https://cpass-api.eocean.net/');
 
 // Auto-create uploads directory if missing
 if (!is_dir(UPLOAD_DIR)) {
