@@ -22,7 +22,7 @@ $msgs   = $_POST['record_msg']   ?? [];
 $db      = getDB();
 $stmt    = $db->prepare("
     INSERT INTO sms (msg, number, current_status, status, activity_by, activity_at)
-    VALUES (?, ?, 'queued', 'pending', ?, NOW())
+    VALUES (?, ?, 'pending', 'active', ?, NOW())
 ");
 
 $inserted = 0;

@@ -44,7 +44,7 @@ $db = getDB();
 
 $stmt = $db->prepare("
     SELECT id, number, msg FROM sms 
-    WHERE status = 'pending' 
+    WHERE current_status = 'pending' AND status = 'active'
     ORDER BY id ASC 
     LIMIT ?
 ");
@@ -53,15 +53,15 @@ $stmt->execute();
 $records = $stmt->fetchAll();
 
 if (empty($records)) {
-    logMessage('No pending SMS found. Exiting.');
+    logMessage('No active pending SMS found. Exiting.');
     exit(0);
 }
 
-logMessage('Found ' . count($records) . ' pending SMS records');
+logMessage('Found ' . count($records) . ' active pending SMS records');
 
 $updateStmt = $db->prepare("
     UPDATE sms 
-    SET status = ?, 
+    SET  
         current_status = ?, 
         sms_reference_id = ?, 
         activity_at = NOW() 
@@ -78,7 +78,7 @@ foreach ($records as $record) {
 
     logMessage("Sending to {$number} (ID: {$smsId})...");
 
-    $updateStmt->execute(['pending', 'processing', null, $smsId]);
+    $updateStmt->execute(['processing', null, $smsId]);
 
     $result = sendSmsViaApi($number, $message);
 
@@ -88,11 +88,11 @@ foreach ($records as $record) {
     $responseMsg = $result['message'] ?? json_encode($result);
 
     if ($statusCode == 200 || $apiStatus === 'accepted' || $apiStatus === 'success' || !empty($messageId)) {
-        $updateStmt->execute(['sent', 'done', $messageId, $smsId]);
+        $updateStmt->execute(['sent', $messageId, $smsId]);
         logMessage("✓ Sent to {$number} | Ref: {$messageId}");
         $sent++;
     } else {
-        $updateStmt->execute(['failed', 'done', 'ERROR: ' . $responseMsg, $smsId]);
+        $updateStmt->execute(['failed', 'ERROR: ' . $responseMsg, $smsId]);
         logMessage("✗ Failed for {$number} | Reason: {$responseMsg}");
         $failed++;
     }

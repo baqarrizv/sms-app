@@ -35,9 +35,9 @@ try {
         `id`               INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
         `msg`              TEXT NOT NULL,
         `number`           VARCHAR(20) NOT NULL,
-        `current_status`   ENUM('queued','processing','done') DEFAULT 'queued',
+        `current_status`   ENUM('pending','processing','sent','stop','failed') DEFAULT 'pending',
         `sms_reference_id` VARCHAR(100) DEFAULT NULL,
-        `status`           ENUM('pending','sent','failed') DEFAULT 'pending',
+        `status`           ENUM('active','inactive') DEFAULT 'active',
         `activity_by`      INT UNSIGNED DEFAULT NULL,
         `activity_at`      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (`activity_by`) REFERENCES `users`(`id`) ON DELETE SET NULL
@@ -54,10 +54,8 @@ try {
 
     echo '<!DOCTYPE html><html><head><meta charset="utf-8">
     <title>Setup Complete</title>
-    <link href='https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&display=swap' rel='stylesheet'>
-    <link href='https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&display=swap' rel='stylesheet'>
     <style>
-        body { font-family: 'Lato', sans-serif; background: #0a0a0a; color: #00ff88; display: flex;
+        body { sans-serif; background: #0a0a0a; color: #00ff88; display: flex;
                align-items: center; justify-content: center; height: 100vh; margin: 0; }
         .box { border: 1px solid #00ff88; padding: 2rem 3rem; text-align: center; }
         h2 { margin: 0 0 1rem; font-size: 1.5rem; }
