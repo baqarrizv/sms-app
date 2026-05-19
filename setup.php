@@ -54,8 +54,10 @@ try {
 
     echo '<!DOCTYPE html><html><head><meta charset="utf-8">
     <title>Setup Complete</title>
+    <link href='https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&display=swap' rel='stylesheet'>
+    <link href='https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&display=swap' rel='stylesheet'>
     <style>
-        body { font-family: monospace; background: #0a0a0a; color: #00ff88; display: flex;
+        body { font-family: 'Lato', sans-serif; background: #0a0a0a; color: #00ff88; display: flex;
                align-items: center; justify-content: center; height: 100vh; margin: 0; }
         .box { border: 1px solid #00ff88; padding: 2rem 3rem; text-align: center; }
         h2 { margin: 0 0 1rem; font-size: 1.5rem; }

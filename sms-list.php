@@ -63,13 +63,13 @@ function statusBadge(string $status): string {
 }
 ?>
 <!DOCTYPE html>
-<html lang="ur">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SMS List — SMS Manager</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -84,11 +84,11 @@ function statusBadge(string $status): string {
     --muted:    #5a5a72;
     --success:  #4ade80;
     --error:    #f76a8a;
-    --mono:     'DM Mono', monospace;
-    --display:  'Syne', sans-serif;
+    --body:     'Lato', sans-serif;
+    --heading:  'Lato', sans-serif;
   }
 
-  body { background: var(--bg); color: var(--text); font-family: var(--mono); min-height: 100vh; }
+  body { background: var(--bg); color: var(--text); font-family: var(--body); font-size: 16px; line-height: 1.6; min-height: 100vh; }
 
   nav {
     position: sticky; top: 0; z-index: 100;
@@ -99,17 +99,17 @@ function statusBadge(string $status): string {
   }
 
   .nav-brand {
-    font-family: var(--display); font-weight: 800; font-size: 1.1rem;
+    font-family: var(--heading); font-weight: 700; font-size: 1.2rem; letter-spacing: 0.02em;
     display: flex; align-items: center; gap: 0.6rem;
     text-decoration: none; color: var(--text);
   }
   .nav-brand span { background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
 
   .nav-right { display: flex; align-items: center; gap: 1.5rem; }
-  .nav-user  { display: flex; align-items: center; gap: 0.6rem; color: var(--muted); font-size: 0.82rem; }
-  .avatar    { width: 30px; height: 30px; background: linear-gradient(135deg, var(--accent), var(--accent2)); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: var(--display); font-weight: 700; font-size: 0.75rem; color: #fff; }
+  .nav-user  { display: flex; align-items: center; gap: 0.6rem; color: var(--muted); font-size: 0.9rem; font-weight: 500; }
+  .avatar    { width: 34px; height: 34px; background: linear-gradient(135deg, var(--accent), var(--accent2)); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: var(--heading); font-weight: 700; font-size: 0.85rem; color: #fff; box-shadow: 0 2px 8px rgba(124,106,247,0.3); }
   .nav-links { display: flex; gap: 0.5rem; }
-  .nav-link  { padding: 0.4rem 0.9rem; border-radius: 8px; text-decoration: none; font-size: 0.8rem; color: var(--muted); transition: all 0.2s; border: 1px solid transparent; }
+  .nav-link  { padding: 0.5rem 1rem; border-radius: 8px; text-decoration: none; font-size: 0.9rem; font-weight: 500; color: var(--muted); transition: all 0.2s; border: 1px solid transparent; }
   .nav-link:hover  { color: var(--text); border-color: var(--border); background: var(--surface); }
   .nav-link.active { color: var(--accent); border-color: rgba(124,106,247,0.3); background: rgba(124,106,247,0.08); }
   .nav-link.danger { color: var(--error); }
@@ -119,11 +119,11 @@ function statusBadge(string $status): string {
 
   /* Page header */
   .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
-  .page-title  { font-family: var(--display); font-size: 1.4rem; font-weight: 800; }
-  .page-sub    { color: var(--muted); font-size: 0.78rem; margin-top: 0.2rem; }
+  .page-title  { font-family: var(--heading); font-size: 1.5rem; font-weight: 700; letter-spacing: 0.01em; }
+  .page-sub    { color: var(--muted); font-size: 0.9rem; margin-top: 0.3rem; }
 
   /* Alert */
-  .alert { padding: 0.8rem 1.1rem; border-radius: 10px; font-size: 0.83rem; margin-bottom: 1.2rem; display: flex; align-items: center; gap: 0.5rem; }
+  .alert { padding: 0.9rem 1.2rem; border-radius: 10px; font-size: 0.95rem; line-height: 1.5; margin-bottom: 1.2rem; display: flex; align-items: center; gap: 0.5rem; }
   .alert-error   { background: rgba(247,106,138,0.08); border: 1px solid rgba(247,106,138,0.25); color: var(--error); }
   .alert-success { background: rgba(74,222,128,0.08);  border: 1px solid rgba(74,222,128,0.25);  color: var(--success); }
 
@@ -140,14 +140,14 @@ function statusBadge(string $status): string {
   input[type="text"], select {
     background: var(--bg); border: 1px solid var(--border);
     border-radius: 8px; color: var(--text);
-    font-family: var(--mono); font-size: 0.82rem;
-    padding: 0.5rem 0.8rem; outline: none;
+    font-family: var(--body); font-size: 0.95rem;
+    padding: 0.6rem 0.9rem; outline: none;
     transition: border-color 0.2s;
   }
   input[type="text"]:focus, select:focus { border-color: var(--accent); }
   input[type="text"] { min-width: 200px; }
 
-  .btn { padding: 0.5rem 1rem; border: none; border-radius: 8px; font-family: var(--mono); font-size: 0.82rem; cursor: pointer; transition: all 0.15s; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; }
+  .btn { padding: 0.6rem 1.2rem; border: none; border-radius: 8px; font-family: var(--body); font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.15s; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; }
   .btn-primary { background: linear-gradient(135deg, var(--accent), #9d8cf8); color: #fff; }
   .btn-ghost   { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
   .btn-ghost:hover { color: var(--text); }
@@ -155,30 +155,31 @@ function statusBadge(string $status): string {
   /* Table */
   .table-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; animation: fadeIn 0.4s ease both; }
 
-  .table-meta { padding: 0.9rem 1.2rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; font-size: 0.78rem; color: var(--muted); }
+  .table-meta { padding: 1rem 1.2rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; font-size: 0.85rem; color: var(--muted); }
   .table-meta strong { color: var(--text); }
 
   .table-wrap { overflow-x: auto; }
 
-  table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.95rem; line-height: 1.5; }
   thead tr { background: var(--surface2); }
-  th { padding: 0.7rem 0.9rem; text-align: left; font-size: 0.68rem; font-weight: 400; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; border-bottom: 1px solid var(--border); white-space: nowrap; }
-  td { padding: 0.7rem 0.9rem; border-bottom: 1px solid var(--border); color: var(--text); vertical-align: middle; }
+  th { padding: 0.8rem 1rem; text-align: left; font-size: 0.75rem; font-weight: 700; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  td { padding: 0.8rem 1rem; border-bottom: 1px solid var(--border); color: var(--text); vertical-align: middle; line-height: 1.5; }
   tr:last-child td { border-bottom: none; }
   tbody tr:hover td { background: rgba(255,255,255,0.015); }
 
-  .td-id     { color: var(--muted); font-size: 0.75rem; }
-  .td-number { font-weight: 500; letter-spacing: 0.04em; }
-  .td-msg    { max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); font-size: 0.79rem; }
-  .td-ref    { color: var(--muted); font-size: 0.75rem; font-style: italic; }
-  .td-by     { color: var(--muted); font-size: 0.75rem; }
-  .td-at     { color: var(--muted); font-size: 0.73rem; white-space: nowrap; }
+  .td-id     { color: var(--muted); font-size: 0.85rem; }
+  .td-number { font-weight: 600; letter-spacing: 0.02em; font-size: 0.95rem; }
+  .td-msg    { max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); font-size: 0.9rem; line-height: 1.4; }
+  .td-ref    { color: var(--muted); font-size: 0.85rem; font-style: italic; }
+  .td-by     { color: var(--muted); font-size: 0.85rem; }
+  .td-at     { color: var(--muted); font-size: 0.85rem; white-space: nowrap; }
 
   .badge {
     display: inline-block;
-    padding: 0.22rem 0.65rem;
+    padding: 0.3rem 0.75rem;
     border-radius: 20px;
-    font-size: 0.72rem;
+    font-size: 0.8rem;
+    font-weight: 600;
     background: rgba(from var(--bc) r g b / 0.12);
     color: var(--bc);
     border: 1px solid rgba(from var(--bc) r g b / 0.25);
@@ -189,12 +190,12 @@ function statusBadge(string $status): string {
   .badge { background-color: color-mix(in srgb, var(--bc) 12%, transparent); border-color: color-mix(in srgb, var(--bc) 25%, transparent); }
 
   /* Empty */
-  .empty-state { text-align: center; padding: 4rem 2rem; color: var(--muted); }
-  .empty-state .empty-icon { font-size: 2.5rem; margin-bottom: 0.8rem; opacity: 0.4; }
+  .empty-state { text-align: center; padding: 4rem 2rem; color: var(--muted); font-size: 1rem; }
+  .empty-state .empty-icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.4; }
 
   /* Pagination */
   .pagination { display: flex; align-items: center; justify-content: center; gap: 0.4rem; padding: 1.2rem; border-top: 1px solid var(--border); flex-wrap: wrap; }
-  .page-btn { padding: 0.4rem 0.8rem; border-radius: 7px; text-decoration: none; font-size: 0.8rem; color: var(--muted); border: 1px solid var(--border); background: var(--surface2); transition: all 0.15s; }
+  .page-btn { padding: 0.5rem 0.9rem; border-radius: 7px; text-decoration: none; font-size: 0.9rem; font-weight: 500; color: var(--muted); border: 1px solid var(--border); background: var(--surface2); transition: all 0.15s; }
   .page-btn:hover  { color: var(--text); border-color: var(--accent); }
   .page-btn.active { color: var(--accent); border-color: var(--accent); background: rgba(124,106,247,0.1); }
   .page-btn.disabled { opacity: 0.3; pointer-events: none; }

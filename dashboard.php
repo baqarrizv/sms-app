@@ -136,13 +136,13 @@ try {
 } catch (Exception $e) {}
 ?>
 <!DOCTYPE html>
-<html lang="ur">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dashboard — SMS Manager</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -158,14 +158,15 @@ try {
     --success:  #4ade80;
     --error:    #f76a8a;
     --warning:  #fbbf24;
-    --mono:     'DM Mono', monospace;
-    --display:  'Syne', sans-serif;
+    --font:     'Lato', sans-serif;
   }
 
   body {
     background: var(--bg);
     color: var(--text);
-    font-family: var(--mono);
+    font-family: var(--font);
+    font-size: 16px;
+    line-height: 1.6;
     min-height: 100vh;
   }
 
@@ -185,9 +186,10 @@ try {
   }
 
   .nav-brand {
-    font-family: var(--display);
-    font-weight: 800;
-    font-size: 1.1rem;
+    font-family: var(--font);
+    font-weight: 700;
+    font-size: 1.25rem;
+    letter-spacing: 0.02em;
     display: flex;
     align-items: center;
     gap: 0.6rem;
@@ -209,29 +211,32 @@ try {
     align-items: center;
     gap: 0.6rem;
     color: var(--muted);
-    font-size: 0.82rem;
+    font-size: 0.95rem;
+    font-weight: 500;
   }
 
   .avatar {
-    width: 30px; height: 30px;
+    width: 36px; height: 36px;
     background: linear-gradient(135deg, var(--accent), var(--accent2));
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-family: var(--display);
+    font-family: var(--font);
     font-weight: 700;
-    font-size: 0.75rem;
+    font-size: 0.9rem;
     color: #fff;
+    box-shadow: 0 2px 10px rgba(124,106,247,0.35);
   }
 
   .nav-links { display: flex; gap: 0.5rem; }
 
   .nav-link {
-    padding: 0.4rem 0.9rem;
+    padding: 0.5rem 1rem;
     border-radius: 8px;
     text-decoration: none;
-    font-size: 0.8rem;
+    font-size: 0.95rem;
+    font-weight: 500;
     color: var(--muted);
     transition: all 0.2s;
     border: 1px solid transparent;
@@ -273,8 +278,8 @@ try {
   .stat-icon.pink   { background: rgba(247,106,138,0.15); }
   .stat-icon.green  { background: rgba(74,222,128,0.15);  }
 
-  .stat-val { font-family: var(--display); font-size: 1.5rem; font-weight: 800; }
-  .stat-lbl { font-size: 0.72rem; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; }
+  .stat-val { font-family: var(--font); font-size: 1.6rem; font-weight: 700; }
+  .stat-lbl { font-size: 0.8rem; color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; font-weight: 500; }
 
   /* Section header */
   .section-head {
@@ -287,8 +292,8 @@ try {
   }
 
   .section-title {
-    font-family: var(--display);
-    font-size: 1.1rem;
+    font-family: var(--font);
+    font-size: 1.2rem;
     font-weight: 700;
   }
 
@@ -327,7 +332,7 @@ try {
   }
 
   .drop-icon { font-size: 2rem; margin-bottom: 0.6rem; }
-  .drop-text { color: var(--muted); font-size: 0.85rem; }
+  .drop-text { color: var(--muted); font-size: 0.95rem; line-height: 1.5; }
   .drop-text strong { color: var(--accent); }
 
   .upload-row { display: flex; align-items: center; gap: 1rem; margin-top: 1rem; flex-wrap: wrap; }
@@ -337,8 +342,8 @@ try {
     background: var(--surface2);
     border: 1px solid var(--border);
     border-radius: 8px;
-    padding: 0.55rem 0.9rem;
-    font-size: 0.8rem;
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
     color: var(--muted);
     display: flex;
     align-items: center;
@@ -349,11 +354,12 @@ try {
   .file-badge span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
   .btn {
-    padding: 0.6rem 1.3rem;
+    padding: 0.65rem 1.4rem;
     border: none;
     border-radius: 8px;
-    font-family: var(--mono);
-    font-size: 0.83rem;
+    font-family: var(--font);
+    font-size: 0.95rem;
+    font-weight: 600;
     cursor: pointer;
     transition: all 0.15s;
     white-space: nowrap;
@@ -398,9 +404,10 @@ try {
 
   /* Alert */
   .alert {
-    padding: 0.8rem 1.1rem;
+    padding: 0.9rem 1.2rem;
     border-radius: 10px;
-    font-size: 0.83rem;
+    font-size: 0.95rem;
+    line-height: 1.5;
     margin-bottom: 1.2rem;
     display: flex;
     align-items: center;
@@ -429,7 +436,8 @@ try {
   }
 
   .selected-badge {
-    font-size: 0.78rem;
+    font-size: 0.85rem;
+    font-weight: 600;
     color: var(--accent);
     background: rgba(124,106,247,0.1);
     border: 1px solid rgba(124,106,247,0.2);
@@ -442,27 +450,28 @@ try {
 
   .table-wrap { overflow-x: auto; }
 
-  table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.95rem; line-height: 1.5; }
 
   thead tr { background: var(--surface2); }
 
   th {
-    padding: 0.75rem 1rem;
+    padding: 0.85rem 1.1rem;
     text-align: left;
-    font-size: 0.7rem;
-    font-weight: 400;
+    font-size: 0.78rem;
+    font-weight: 700;
     color: var(--muted);
-    letter-spacing: 0.1em;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
     border-bottom: 1px solid var(--border);
     white-space: nowrap;
   }
 
   td {
-    padding: 0.75rem 1rem;
+    padding: 0.85rem 1.1rem;
     border-bottom: 1px solid var(--border);
     color: var(--text);
     vertical-align: middle;
+    line-height: 1.5;
   }
 
   tr:last-child td { border-bottom: none; }
@@ -478,10 +487,11 @@ try {
     text-overflow: ellipsis;
     white-space: nowrap;
     color: var(--muted);
-    font-size: 0.8rem;
+    font-size: 0.92rem;
+    line-height: 1.4;
   }
 
-  .td-phone { font-weight: 500; color: var(--text); letter-spacing: 0.04em; }
+  .td-phone { font-weight: 600; color: var(--text); letter-spacing: 0.02em; font-size: 0.95rem; }
 
   /* Checkbox */
   input[type="checkbox"] {
@@ -495,9 +505,10 @@ try {
     text-align: center;
     padding: 4rem 2rem;
     color: var(--muted);
+    font-size: 1rem;
   }
-  .empty-state .empty-icon { font-size: 2.5rem; margin-bottom: 0.8rem; opacity: 0.4; }
-  .empty-state p { font-size: 0.85rem; }
+  .empty-state .empty-icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.4; }
+  .empty-state p { font-size: 1rem; line-height: 1.6; }
 
   /* Action bar */
   .action-bar {
@@ -510,7 +521,7 @@ try {
     gap: 0.8rem;
   }
 
-  .action-info { font-size: 0.8rem; color: var(--muted); }
+  .action-info { font-size: 0.95rem; color: var(--muted); font-weight: 500; }
   .action-info strong { color: var(--text); }
 
   @keyframes fadeIn {
@@ -584,7 +595,7 @@ try {
         <input type="file" name="drive_file" id="fileInput" accept=".csv,.xlsx,.xls" onchange="updateFileName(this)">
         <div class="drop-icon">☁️</div>
         <div class="drop-text">
-          <strong>Click or drag here</strong> — CSV ya Excel file<br>
+          <strong>Click or drag here</strong> — CSV or Excel file<br>
           <span style="font-size:0.75rem;opacity:0.6">Columns: phone/number, msg/message</span>
         </div>
       </div>
@@ -613,12 +624,12 @@ try {
     <div class="table-card">
       <div class="table-toolbar">
         <div style="display:flex;align-items:center;gap:0.8rem;">
-          <label style="display:flex;align-items:center;gap:0.4rem;font-size:0.8rem;cursor:pointer;color:var(--muted);">
+          <label style="display:flex;align-items:center;gap:0.4rem;font-size:0.95rem;cursor:pointer;color:var(--muted);font-weight:500;">
             <input type="checkbox" id="checkAll"> Select All
           </label>
           <span class="selected-badge" id="selBadge2">0 selected</span>
         </div>
-        <div style="font-size:0.78rem;color:var(--muted);">
+        <div style="font-size:0.9rem;color:var(--muted);font-weight:500;">
           Total: <strong style="color:var(--text)"><?= count($records) ?></strong> records
         </div>
       </div>
