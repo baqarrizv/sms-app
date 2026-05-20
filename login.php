@@ -51,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    :root {
+  :root {
     --bg:       #060608;
     --surface:  #0e0e12;
     --surface2: #13131a;
@@ -76,6 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     justify-content: center;
     overflow: hidden;
     position: relative;
+    transition: background 0.3s, color 0.3s;
   }
 
   /* Animated grid background */
@@ -88,6 +89,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       linear-gradient(90deg, rgba(124,106,247,0.04) 1px, transparent 1px);
     background-size: 40px 40px;
     animation: gridMove 20s linear infinite;
+    z-index: 0;
   }
 
   @keyframes gridMove {
@@ -102,6 +104,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     filter: blur(80px);
     opacity: 0.15;
     pointer-events: none;
+    z-index: 0;
   }
   .orb-1 { width: 400px; height: 400px; background: var(--accent);  top: -100px; left: -100px; animation: float1 8s ease-in-out infinite; }
   .orb-2 { width: 300px; height: 300px; background: var(--accent2); bottom: -80px; right: -80px; animation: float2 10s ease-in-out infinite; }
@@ -141,7 +144,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   }
 
   .brand h1 {
-    font-family: var(--display);
+    font-family: var(--font);
     font-size: 1.6rem;
     font-weight: 800;
     letter-spacing: -0.03em;
@@ -237,7 +240,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     border: none;
     border-radius: 10px;
     color: #fff;
-    font-family: var(--display);
+    font-family: var(--font);
     font-size: 0.95rem;
     font-weight: 700;
     letter-spacing: 0.05em;
@@ -257,34 +260,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     font-size: 0.75rem;
   }
 
+  /* Theme Toggle */
   .theme-toggle {
     position: fixed; top: 1rem; right: 1rem; z-index: 100;
-    width: 40px; height: 40px;
-    background: rgba(255,255,255,0.08);
-    border: 1px solid rgba(255,255,255,0.12);
-    border-radius: 10px;
+    width: 42px; height: 42px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
     cursor: pointer; display: flex; align-items: center; justify-content: center;
-    color: var(--text); font-size: 1.15rem;
-    transition: all 0.2s; backdrop-filter: blur(10px);
+    color: var(--text); font-size: 1.2rem;
+    transition: all 0.3s; backdrop-filter: blur(12px);
   }
-  .theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+  .theme-toggle:hover { border-color: var(--accent); color: var(--accent); transform: scale(1.05); }
 
+  /* Light mode variables */
   body.light {
-    --bg:       #f5f5f9;
+    --bg:       #f4f5f7;
     --surface:  #ffffff;
-    --surface2: #eeeff4;
-    --border:   #dfe1e8;
+    --surface2: #eeeff3;
+    --border:   #d8dae2;
     --text:     #1a1a2e;
     --muted:    #6b6b80;
   }
-  body.light .card { background: #ffffff; box-shadow: 0 30px 60px rgba(0,0,0,0.08); }
-  body.light .theme-toggle { background: rgba(255,255,255,0.8); border-color: rgba(0,0,0,0.08); }
-  body.light input[type="email"], body.light input[type="password"] { background: #f5f5f9; }
+
+  body.light::before {
+    background-image:
+      linear-gradient(rgba(124,106,247,0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(124,106,247,0.06) 1px, transparent 1px);
+  }
+
+  body.light .orb { opacity: 0.08; }
+  body.light .card { box-shadow: 0 20px 50px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04); }
+  body.light .theme-toggle { background: rgba(255,255,255,0.9); border-color: rgba(0,0,0,0.08); box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+  body.light input[type="email"], body.light input[type="password"] { background: #f9f9fb; }
+  body.light input[type="email"]:focus, body.light input[type="password"]:focus { background: #ffffff; }
   body.light .error-box { background: rgba(247,106,138,0.06); }
 </style>
 </head>
 <body>
-<button class="theme-toggle" id="themeToggle">🌙</button>
+<button class="theme-toggle" id="themeToggle" title="Toggle theme">🌙</button>
 <div class="orb orb-1"></div>
 <div class="orb orb-2"></div>
 
@@ -311,7 +325,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           </svg>
           <input type="email" name="email" placeholder="admin@gmail.com"
                  value="<?= htmlspecialchars($_POST['email'] ?? '') ?>" required autocomplete="email">
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Password</label>
+        <div class="input-wrap">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+          <input type="password" name="password" placeholder="••••••••" required autocomplete="current-password">
+        </div>
+      </div>
+
+      <button type="submit" class="btn-login">Login →</button>
+    </form>
+  </div>
+
+  <p class="footer-note">
+    First time? Run <a href="setup" style="color:var(--accent);text-decoration:none">setup</a> first
+  </p>
 </div>
+
 <script>
 (function() {
   const saved = localStorage.getItem('theme');
