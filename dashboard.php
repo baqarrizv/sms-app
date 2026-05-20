@@ -130,9 +130,15 @@ function findField(array $row, array $keys): ?string {
 
 // SMS count
 $smsCount = 0;
+$pendingCount = 0;
+$sentCount = 0;
+$failedCount = 0;
 try {
     $db = getDB();
     $smsCount = $db->query("SELECT COUNT(*) FROM sms")->fetchColumn();
+    $pendingCount = $db->query("SELECT COUNT(*) FROM sms WHERE current_status = 'pending'")->fetchColumn();
+    $sentCount = $db->query("SELECT COUNT(*) FROM sms WHERE current_status = 'sent'")->fetchColumn();
+    $failedCount = $db->query("SELECT COUNT(*) FROM sms WHERE current_status = 'failed'")->fetchColumn();
 } catch (Exception $e) {}
 ?>
 <!DOCTYPE html>
@@ -555,6 +561,29 @@ try {
         <div class="stat-val"><?= number_format($smsCount) ?></div>
         <div class="stat-lbl">Total SMS</div>
       </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon purple">⏳</div>
+      <div>
+        <div class="stat-val"><?= number_format($pendingCount) ?></div>
+        <div class="stat-lbl">Pending SMS</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon green">✅</div>
+      <div>
+        <div class="stat-val"><?= number_format($sentCount) ?></div>
+        <div class="stat-lbl">Sent SMS</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon pink">❌</div>
+      <div>
+        <div class="stat-val"><?= number_format($failedCount) ?></div>
+        <div class="stat-lbl">Failed SMS</div>
+      </div>
+    </div>
+  </div>
     </div>
   </div>
 
