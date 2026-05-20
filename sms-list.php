@@ -258,7 +258,7 @@ function statusBadge(string $status): string {
 </head>
 <body>
 <nav>
-  <a href="dashboard.php" class="nav-brand">📨 <span>SMS</span>Manager</a>
+  <a href="dashboard.php" class="nav-brand">📨 <span>SIMSIN SMS</span>Manager</a>
   <div class="nav-right">
     <div class="nav-links">
       <a href="dashboard.php" class="nav-link">📁 Upload</a>
