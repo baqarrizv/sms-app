@@ -52,14 +52,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --bg:       #060608;
-    --surface:  #0e0e12;
-    --surface2: #13131a;
-    --border:   #1e1e28;
+    --bg:       #f4f5f7;
+    --surface:  #ffffff;
+    --surface2: #f0f1f5;
+    --border:   #dde0e8;
     --accent:   #7c6af7;
     --accent2:  #f76a8a;
-    --text:     #e8e8f0;
-    --muted:    #5a5a72;
+    --text:     #1a1a2e;
+    --muted:    #6b6b80;
     --success:  #4ade80;
     --error:    #f76a8a;
     --warning:  #fbbf24;
@@ -298,7 +298,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </style>
 </head>
 <body>
-<button class="theme-toggle" id="themeToggle" title="Toggle theme">🌙</button>
+<button class="theme-toggle" id="themeToggle" title="Toggle theme">☀️</button>
 <div class="orb orb-1"></div>
 <div class="orb orb-2"></div>
 
