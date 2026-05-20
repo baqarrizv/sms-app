@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['drive_file'])) {
             if (move_uploaded_file($file['tmp_name'], $dest)) {
                 $_SESSION['uploaded_file'] = $dest;
                 $_SESSION['file_name']     = $file['name'];
-                header('Location: dashboard.php');
+                header('Location: dashboard');
                 exit;
             } else {
                 $error = 'There was a problem saving the file.';
@@ -538,17 +538,17 @@ try {
 </head>
 <body>
 <nav>
-  <a href="dashboard.php" class="nav-brand">📨 <span>SIMSIN SMS</span>Manager</a>
+  <a href="dashboard" class="nav-brand">📨 <span>SIMSIN SMS</span>Manager</a>
   <div class="nav-right">
     <div class="nav-links">
-      <a href="dashboard.php" class="nav-link active">📁 Upload</a>
-      <a href="sms-list.php" class="nav-link">📋 SMS List</a>
+      <a href="dashboard" class="nav-link active">📁 Upload</a>
+      <a href="sms-list" class="nav-link">📋 SMS List</a>
     </div>
     <div class="nav-user">
       <div class="avatar"><?= strtoupper(substr($user['name'], 0, 1)) ?></div>
       <span><?= htmlspecialchars($user['name']) ?></span>
     </div>
-    <a href="logout.php" class="nav-link danger">Logout</a>
+    <a href="logout" class="nav-link danger">Logout</a>
   </div>
 </nav>
 
@@ -601,7 +601,7 @@ try {
     <div class="section-head">
       <div class="section-title">📁 File Upload</div>
       <?php if ($fileInfo): ?>
-      <a href="clear-file.php" class="btn btn-ghost" style="font-size:0.75rem;">✕ File Clear</a>
+      <a href="clear-file" class="btn btn-ghost" style="font-size:0.75rem;">✕ File Clear</a>
       <?php endif; ?>
     </div>
 
@@ -635,7 +635,7 @@ try {
     <span class="selected-badge" id="selBadge">0 selected</span>
   </div>
 
-  <form method="POST" action="insert-sms.php" id="smsForm">
+  <form method="POST" action="insert-sms" id="smsForm">
     <div class="table-card">
       <div class="table-toolbar">
         <div style="display:flex;align-items:center;gap:0.8rem;">

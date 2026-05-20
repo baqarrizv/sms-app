@@ -3,7 +3,7 @@ require_once 'includes/config.php';
 
 // Already logged in
 if (isLoggedIn()) {
-    header('Location: dashboard.php');
+    header('Location: dashboard');
     exit;
 }
 
@@ -29,13 +29,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'name'  => $user['name'],
                     'email' => $user['email'],
                 ];
-                header('Location: dashboard.php');
+                header('Location: dashboard');
                 exit;
             } else {
                 $error = 'Invalid email or password.';
             }
         } catch (Exception $e) {
-            $error = 'Database error. Run setup.php first.';
+            $error = 'Database error. Run setup first.';
         }
     }
 }
@@ -303,7 +303,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   </div>
 
   <p class="footer-note">
-    First time? Run <a href="setup.php" style="color:var(--accent);text-decoration:none">setup.php</a> first
+    First time? Run <a href="setup" style="color:var(--accent);text-decoration:none">setup</a> first
   </p>
 </div>
 </body>

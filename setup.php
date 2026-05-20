@@ -68,7 +68,7 @@ try {
         <p>Database: <strong style="color:#00ff88">sms_app</strong> created</p>
         <p>Tables: <strong style="color:#00ff88">users, sms</strong> ready</p>
         <p>Admin: <strong style="color:#00ff88">admin@gmail.com</strong> / admin123</p>
-        <a href="login.php">Go to Login →</a>
+        <a href="login">Go to Login →</a>
     </div>
     </body></html>';
 

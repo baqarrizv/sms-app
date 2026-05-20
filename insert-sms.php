@@ -3,7 +3,7 @@ require_once 'includes/config.php';
 requireLogin();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: dashboard.php');
+    header('Location: dashboard');
     exit;
 }
 
@@ -12,7 +12,7 @@ $selected = $_POST['selected'] ?? [];
 
 if (empty($selected)) {
     $_SESSION['flash'] = ['type' => 'error', 'msg' => 'No records were selected.'];
-    header('Location: dashboard.php');
+    header('Location: dashboard');
     exit;
 }
 
@@ -46,5 +46,5 @@ $_SESSION['flash'] = [
     'msg'  => "$inserted records inserted into SMS table." . ($skipped ? " ($skipped empty records skipped)" : '')
 ];
 
-header('Location: sms-list.php');
+header('Location: sms-list');
 exit;

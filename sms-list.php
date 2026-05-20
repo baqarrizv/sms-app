@@ -258,17 +258,17 @@ function statusBadge(string $status): string {
 </head>
 <body>
 <nav>
-  <a href="dashboard.php" class="nav-brand">📨 <span>SIMSIN SMS</span>Manager</a>
+  <a href="dashboard" class="nav-brand">📨 <span>SIMSIN SMS</span>Manager</a>
   <div class="nav-right">
     <div class="nav-links">
-      <a href="dashboard.php" class="nav-link">📁 Upload</a>
-      <a href="sms-list.php" class="nav-link active">📋 SMS List</a>
+      <a href="dashboard" class="nav-link">📁 Upload</a>
+      <a href="sms-list" class="nav-link active">📋 SMS List</a>
     </div>
     <div class="nav-user">
       <div class="avatar"><?= strtoupper(substr($user['name'], 0, 1)) ?></div>
       <span><?= htmlspecialchars($user['name']) ?></span>
     </div>
-    <a href="logout.php" class="nav-link danger">Logout</a>
+    <a href="logout" class="nav-link danger">Logout</a>
   </div>
 </nav>
 
@@ -278,7 +278,7 @@ function statusBadge(string $status): string {
       <div class="page-title">📋 SMS Records</div>
       <div class="page-sub">All inserted SMS records</div>
     </div>
-    <a href="dashboard.php" class="btn btn-primary">+ Upload New File</a>
+    <a href="dashboard" class="btn btn-primary">+ Upload New File</a>
   </div>
 
   <?php if ($flash): ?>
@@ -309,7 +309,7 @@ function statusBadge(string $status): string {
     </div>
     <button type="submit" class="btn btn-primary">Filter</button>
     <?php if ($search || $statusFilter || $cStatusFilter): ?>
-    <a href="sms-list.php" class="btn btn-ghost">Clear</a>
+    <a href="sms-list" class="btn btn-ghost">Clear</a>
     <?php endif; ?>
   </form>
 
