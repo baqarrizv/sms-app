@@ -153,14 +153,14 @@ try {
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --bg:       #060608;
-    --surface:  #0e0e12;
-    --surface2: #13131a;
-    --border:   #1e1e28;
+    --bg:       #f4f5f7;
+    --surface:  #ffffff;
+    --surface2: #eeeff3;
+    --border:   #d8dae2;
     --accent:   #7c6af7;
     --accent2:  #f76a8a;
-    --text:     #e8e8f0;
-    --muted:    #5a5a72;
+    --text:     #1a1a2e;
+    --muted:    #6b6b80;
     --success:  #4ade80;
     --error:    #f76a8a;
     --warning:  #fbbf24;
@@ -181,7 +181,8 @@ try {
     position: sticky;
     top: 0;
     z-index: 100;
-    background: rgba(6,6,8,0.85);
+    background: rgba(244,245,247,0.85);
+
     backdrop-filter: blur(16px);
     border-bottom: 1px solid var(--border);
     padding: 0 2rem;
@@ -266,19 +267,19 @@ try {
   }
   .theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
 
-  /* Light mode */
-  body.light {
-    --bg:       #f5f5f9;
-    --surface:  #ffffff;
-    --surface2: #eeeff4;
-    --border:   #dfe1e8;
-    --text:     #1a1a2e;
-    --muted:    #6b6b80;
+  /* Dark mode */
+  body.dark {
+    --bg:       #060608;
+    --surface:  #0e0e12;
+    --surface2: #13131a;
+    --border:   #1e1e28;
+    --text:     #e8e8f0;
+    --muted:    #5a5a72;
   }
-  body.light nav { background: rgba(245,245,249,0.85); }
-  body.light .nav-link:hover { background: rgba(0,0,0,0.03); }
-  body.light .nav-link.active { background: rgba(124,106,247,0.06); }
-  body.light .drop-zone:hover, body.light .drop-zone.dragover { background: rgba(124,106,247,0.04); }
+  body.dark nav { background: rgba(6,6,8,0.85); }
+  body.dark .nav-link:hover { background: var(--surface); }
+  body.dark .nav-link.active { background: rgba(124,106,247,0.08); }
+  body.dark .drop-zone:hover, body.dark .drop-zone.dragover { background: rgba(124,106,247,0.04); }
 
   /* Main */
   main { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
@@ -575,10 +576,7 @@ try {
       <div class="avatar"><?= strtoupper(substr($user['name'], 0, 1)) ?></div>
       <span><?= htmlspecialchars($user['name']) ?></span>
     </div>
-    <button class="theme-toggle" id="themeToggle" title="Toggle theme">🌙</button>
-    <a href="logout" class="nav-link danger">Logout</a>
-  </div>
-    <button class="theme-toggle" id="themeToggle" title="Toggle theme">🌙</button>
+    <button class="theme-toggle" id="themeToggle" title="Toggle theme">☀️</button>
     <a href="logout" class="nav-link danger">Logout</a>
   </div>
 </nav>
@@ -737,14 +735,14 @@ try {
 // Theme toggle
 (function() {
   const saved = localStorage.getItem('theme');
-  if (saved === 'light') document.body.classList.add('light');
+  if (saved === 'dark') document.body.classList.add('dark');
   const btn = document.getElementById('themeToggle');
-  if (btn) btn.textContent = saved === 'light' ? '☀️' : '🌙';
+  if (btn) btn.textContent = document.body.classList.contains('dark') ? '🌙' : '☀️';
   btn?.addEventListener('click', () => {
-    document.body.classList.toggle('light');
-    const isLight = document.body.classList.contains('light');
-    localStorage.setItem('theme', isLight ? 'light' : 'dark');
-    btn.textContent = isLight ? '☀️' : '🌙';
+    document.body.classList.toggle('dark');
+    const isDark = document.body.classList.contains('dark');
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    btn.textContent = isDark ? '🌙' : '☀️';
   });
 })();
 

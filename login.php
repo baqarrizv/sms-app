@@ -273,28 +273,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   }
   .theme-toggle:hover { border-color: var(--accent); color: var(--accent); transform: scale(1.05); }
 
-  /* Light mode variables */
-  body.light {
-    --bg:       #f4f5f7;
-    --surface:  #ffffff;
-    --surface2: #eeeff3;
-    --border:   #d8dae2;
-    --text:     #1a1a2e;
-    --muted:    #6b6b80;
+  /* Dark mode override */
+  body.dark {
+    --bg:       #060608;
+    --surface:  #0e0e12;
+    --surface2: #13131a;
+    --border:   #1e1e28;
+    --text:     #e8e8f0;
+    --muted:    #5a5a72;
   }
 
-  body.light::before {
+  body.dark::before {
     background-image:
-      linear-gradient(rgba(124,106,247,0.06) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(124,106,247,0.06) 1px, transparent 1px);
+      linear-gradient(rgba(124,106,247,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(124,106,247,0.04) 1px, transparent 1px);
   }
 
-  body.light .orb { opacity: 0.08; }
-  body.light .card { box-shadow: 0 20px 50px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04); }
-  body.light .theme-toggle { background: rgba(255,255,255,0.9); border-color: rgba(0,0,0,0.08); box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
-  body.light input[type="email"], body.light input[type="password"] { background: #f9f9fb; }
-  body.light input[type="email"]:focus, body.light input[type="password"]:focus { background: #ffffff; }
-  body.light .error-box { background: rgba(247,106,138,0.06); }
+  body.dark .orb { opacity: 0.15; }
+  body.dark .card { box-shadow: 0 0 0 1px rgba(124,106,247,0.05), 0 30px 60px rgba(0,0,0,0.5); }
+  body.dark .theme-toggle { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.1); box-shadow: none; }
+  body.dark input[type="email"], body.dark input[type="password"] { background: #060608; }
+  body.dark input[type="email"]:focus, body.dark input[type="password"]:focus { background: #0e0e12; }
+  body.dark .error-box { background: rgba(247,106,138,0.08); }
 </style>
 </head>
 <body>
@@ -305,7 +305,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <div class="login-wrap">
   <div class="brand">
     <div class="brand-icon">📨</div>
-    <h1>SMS Manager</h1>
+    <h1>SIMSIN SMS Manager</h1>
     <p>Bulk SMS System</p>
   </div>
 
@@ -342,22 +342,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </form>
   </div>
 
-  <p class="footer-note">
-    First time? Run <a href="setup" style="color:var(--accent);text-decoration:none">setup</a> first
-  </p>
 </div>
 
 <script>
 (function() {
   const saved = localStorage.getItem('theme');
-  if (saved === 'light') document.body.classList.add('light');
+  if (saved === 'dark') document.body.classList.add('dark');
   const btn = document.getElementById('themeToggle');
-  if (btn) btn.textContent = saved === 'light' ? '☀️' : '🌙';
+  if (btn) btn.textContent = saved === 'dark' ? '🌙' : '☀️';
   btn?.addEventListener('click', () => {
-    document.body.classList.toggle('light');
-    const isLight = document.body.classList.contains('light');
-    localStorage.setItem('theme', isLight ? 'light' : 'dark');
-    btn.textContent = isLight ? '☀️' : '🌙';
+    document.body.classList.toggle('dark');
+    const isDark = document.body.classList.contains('dark');
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    btn.textContent = isDark ? '🌙' : '☀️';
   });
 })();
 </script>
