@@ -32,9 +32,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
 }
 
-$perPage = 25;
+$validPageSizes = [10, 25, 50, 100];
+$perPage = (int)($_GET['per_page'] ?? 25);
+if (!in_array($perPage, $validPageSizes, true)) {
+    $perPage = 25;
+}
 $page    = max(1, (int)($_GET['page'] ?? 1));
-$offset  = ($page - 1) * $perPage;
 
 $statusFilter  = $_GET['status']         ?? '';
 $cStatusFilter = $_GET['current_status'] ?? '';
@@ -57,7 +60,9 @@ $db       = getDB();
 $total    = $db->prepare("SELECT COUNT(*) FROM sms s WHERE $whereSQL");
 $total->execute($params);
 $total    = (int)$total->fetchColumn();
-$pages    = (int)ceil($total / $perPage);
+$pages    = max(1, (int)ceil($total / $perPage));
+$page     = min($page, $pages);
+$offset   = ($page - 1) * $perPage;
 
 $stmt = $db->prepare("
     SELECT s.*, u.name AS user_name
@@ -320,6 +325,14 @@ function statusBadge(string $status): string {
       <input type="text" name="search" placeholder="🔍 Number or message..." value="<?= htmlspecialchars($search) ?>">
     </div>
     <div class="filter-group">
+      <select name="per_page">
+        <option value="10"  <?= $perPage === 10  ? 'selected' : '' ?>>10 per page</option>
+        <option value="25"  <?= $perPage === 25  ? 'selected' : '' ?>>25 per page</option>
+        <option value="50"  <?= $perPage === 50  ? 'selected' : '' ?>>50 per page</option>
+        <option value="100" <?= $perPage === 100 ? 'selected' : '' ?>>100 per page</option>
+      </select>
+    </div>
+    <div class="filter-group">
       <select name="status">
         <option value="">Status: All</option>
         <option value="active"   <?= $statusFilter === 'active'   ? 'selected' : '' ?>>Active</option>
@@ -337,7 +350,7 @@ function statusBadge(string $status): string {
     </div>
     <button type="submit" class="btn btn-primary">Filter</button>
     <?php if ($search || $statusFilter || $cStatusFilter): ?>
-    <a href="sms-list" class="btn btn-ghost">Clear</a>
+    <a href="sms-list?per_page=<?= $perPage ?>" class="btn btn-ghost">Clear</a>
     <?php endif; ?>
   </form>
 
@@ -419,10 +432,15 @@ function statusBadge(string $status): string {
     <div class="table-card">
       <div class="pagination">
         <?php
-          $qs = http_build_query(['search' => $search, 'status' => $statusFilter, 'current_status' => $cStatusFilter]);
+          $qs = http_build_query(array_filter([
+            'search'         => $search,
+            'status'         => $statusFilter,
+            'current_status' => $cStatusFilter,
+            'per_page'       => $perPage,
+          ], fn($v) => $v !== ''));
           $qs = $qs ? "&$qs" : '';
         ?>
-        <a href="?page=<?= $page - 1 . $qs ?>" class="page-btn <?= $page <= 1 ? 'disabled' : '' ?>">← Prev</a>
+        <a href="?page=<?= max(1, $page - 1) . $qs ?>" class="page-btn <?= $page <= 1 ? 'disabled' : '' ?>">← Prev</a>
         <?php
           $start = max(1, $page - 2);
           $end   = min($pages, $page + 2);
@@ -432,7 +450,16 @@ function statusBadge(string $status): string {
           }
           if ($end < $pages) echo ($end < $pages - 1 ? "<span style='color:var(--muted);padding:0 0.3rem'>…</span>" : '') . "<a href='?page=$pages$qs' class='page-btn'>$pages</a>";
         ?>
-        <a href="?page=<?= $page + 1 . $qs ?>" class="page-btn <?= $page >= $pages ? 'disabled' : '' ?>">Next →</a>
+        <a href="?page=<?= min($pages, $page + 1) . $qs ?>" class="page-btn <?= $page >= $pages ? 'disabled' : '' ?>">Next →</a>
+        <form method="GET" class="page-jump" style="display:inline-flex;align-items:center;gap:0.35rem;">
+          <input type="hidden" name="search" value="<?= htmlspecialchars($search) ?>">
+          <input type="hidden" name="status" value="<?= htmlspecialchars($statusFilter) ?>">
+          <input type="hidden" name="current_status" value="<?= htmlspecialchars($cStatusFilter) ?>">
+          <input type="hidden" name="per_page" value="<?= $perPage ?>">
+          <label for="pageJump" style="font-size:0.85rem;color:var(--muted);">Go to:</label>
+          <input id="pageJump" type="number" name="page" min="1" max="<?= $pages ?>" value="<?= $page ?>" style="width:80px;padding:0.45rem 0.7rem;border-radius:7px;border:1px solid var(--border);background:var(--surface);color:var(--text);">
+          <button type="submit" class="page-btn" style="padding:0.45rem 0.8rem;">Go</button>
+        </form>
       </div>
     </div>
   </div>
