@@ -550,24 +550,10 @@ try {
   <!-- Stats -->
   <div class="stats">
     <div class="stat-card">
-      <div class="stat-icon purple">📊</div>
-      <div>
-        <div class="stat-val"><?= count($records) ?></div>
-        <div class="stat-lbl">File Records</div>
-      </div>
-    </div>
-    <div class="stat-card">
       <div class="stat-icon pink">📨</div>
       <div>
         <div class="stat-val"><?= number_format($smsCount) ?></div>
         <div class="stat-lbl">Total SMS</div>
-      </div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon green">👤</div>
-      <div>
-        <div class="stat-val">1</div>
-        <div class="stat-lbl">Users Active</div>
       </div>
     </div>
   </div>

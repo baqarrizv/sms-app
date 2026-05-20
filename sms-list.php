@@ -5,18 +5,30 @@ requireLogin();
 $user = currentUser();
 $flash = null;
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'change_status') {
-    $ids = $_POST['selected'] ?? [];
-    $newStatus = $_POST['new_current_status'] ?? '';
-    if (!empty($ids) && in_array($newStatus, ['failed','pending', 'stop'])) {
-        $db = getDB();
-        $placeholders = implode(',', array_fill(0, count($ids), '?'));
-        $stmt = $db->prepare("UPDATE sms SET current_status = ?, activity_at = NOW() WHERE id IN ($placeholders)");
-        $params = array_merge([$newStatus], $ids);
-        $stmt->execute($params);
-        $flash = ['type' => 'success', 'msg' => count($ids) . ' record(s) updated to ' . ucfirst($newStatus) . '.'];
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update_records') {
+    $ids = $_POST['selected_ids'] ?? [];
+    $newVal = $_POST['new_value'] ?? '';
+
+    if (!empty($ids) && strpos($newVal, ':') !== false) {
+        list($col, $val) = explode(':', $newVal, 2);
+
+        $validCols = [
+            'current_status' => ['pending', 'processing', 'sent', 'stop'],
+            'status' => ['active', 'inactive']
+        ];
+
+        if (isset($validCols[$col]) && in_array($val, $validCols[$col])) {
+            $db = getDB();
+            $placeholders = implode(',', array_fill(0, count($ids), '?'));
+            $params = array_merge([$val], array_map('intval', $ids));
+            $stmt = $db->prepare("UPDATE sms SET $col = ?, activity_at = NOW() WHERE id IN ($placeholders)");
+            $stmt->execute($params);
+            $flash = ['type' => 'success', 'msg' => count($ids) . ' record(s) ' . str_replace('_', ' ', $col) . ' updated to ' . ucfirst($val) . '.'];
+        } else {
+            $flash = ['type' => 'error', 'msg' => 'Invalid value.'];
+        }
     } else {
-        $flash = ['type' => 'error', 'msg' => 'No records selected or invalid status.'];
+        $flash = ['type' => 'error', 'msg' => 'No records selected or no update value chosen.'];
     }
 }
 
@@ -164,6 +176,7 @@ function statusBadge(string $status): string {
   .btn-ghost:hover { color: var(--text); }
   .btn-warning { background: linear-gradient(135deg, #f59e0b, #fbbf24); color: #060608; }
   .btn-danger  { background: linear-gradient(135deg, #ef4444, #f76a8a); color: #fff; }
+  .btn-success { background: linear-gradient(135deg, #22c55e, #4ade80); color: #060608; }
 
   .table-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; animation: fadeIn 0.4s ease both; }
 
@@ -235,6 +248,11 @@ function statusBadge(string $status): string {
   .page-btn.active { color: var(--accent); border-color: var(--accent); background: rgba(124,106,247,0.1); }
   .page-btn.disabled { opacity: 0.3; pointer-events: none; }
 
+  .update-section { display: flex; gap: 0.5rem; align-items: center; }
+  .update-section select { min-width: 160px; }
+
+  .optgroup-label { font-weight: 700; color: var(--text); }
+
   @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 </style>
 </head>
@@ -297,7 +315,7 @@ function statusBadge(string $status): string {
 
   <?php if (!empty($records)): ?>
   <form method="POST" id="smsForm">
-    <input type="hidden" name="action" value="change_status">
+    <input type="hidden" name="action" value="update_records">
     <div class="table-card">
       <div class="table-toolbar">
         <div class="table-toolbar-left">
@@ -327,14 +345,10 @@ function statusBadge(string $status): string {
             </tr>
           </thead>
           <tbody id="recordsBody">
-            <?php foreach ($records as $r):
-              $canChange = in_array($r['current_status'], ['failed', 'pending', 'stop']);
-            ?>
-            <tr data-id="<?= $r['id'] ?>" class="row-tr <?= $canChange ? 'can-change' : '' ?>">
+            <?php foreach ($records as $r): ?>
+            <tr data-id="<?= $r['id'] ?>" class="row-tr">
               <td>
-                <?php if ($canChange): ?>
-                <input type="checkbox" name="selected[]" value="<?= $r['id'] ?>" class="row-check">
-                <?php endif; ?>
+                <input type="checkbox" name="selected_ids[]" value="<?= $r['id'] ?>" class="row-check">
               </td>
               <td class="td-id">#<?= $r['id'] ?></td>
               <td class="td-number"><?= htmlspecialchars($r['number']) ?></td>
@@ -355,12 +369,17 @@ function statusBadge(string $status): string {
           <strong id="selCount">0</strong> records selected
         </div>
         <div class="action-buttons">
-          <select name="new_current_status" id="newStatus">
-            <option value="">Set status to...</option>
-            <option value="pending">Pending</option>
-            <option value="stop">Stop</option>
+          <select name="new_value" id="newValue">
+            <option value="">Update to...</option>
+            <optgroup label="Current Status">
+              <option value="current_status:pending">Pending</option>
+              <option value="current_status:stop">Stop</option>
+            </optgroup>
+            <optgroup label="Status">
+              <option value="status:inactive">Inactive</option>
+            </optgroup>
           </select>
-          <button type="submit" class="btn btn-warning" id="changeBtn" disabled>Update Selected</button>
+          <button type="submit" class="btn btn-success" id="updateBtn" disabled>Update</button>
         </div>
       </div>
     </div>
@@ -402,19 +421,19 @@ function statusBadge(string $status): string {
 </main>
 
 <script>
-const checkAll  = document.getElementById('checkAll');
-const selCount  = document.getElementById('selCount');
-const selBadge  = document.getElementById('selBadge');
-const changeBtn = document.getElementById('changeBtn');
-const smsForm   = document.getElementById('smsForm');
-const newStatus = document.getElementById('newStatus');
+const checkAll   = document.getElementById('checkAll');
+const selCount   = document.getElementById('selCount');
+const selBadge   = document.getElementById('selBadge');
+const updateBtn  = document.getElementById('updateBtn');
+const smsForm    = document.getElementById('smsForm');
+const newValue   = document.getElementById('newValue');
 
 function updateCount() {
   const checked = document.querySelectorAll('.row-check:checked').length;
-  selCount.textContent  = checked;
-  selBadge.textContent  = checked + ' selected';
+  selCount.textContent = checked;
+  selBadge.textContent = checked + ' selected';
   selBadge.classList.toggle('visible', checked > 0);
-  changeBtn.disabled    = checked === 0 || !newStatus.value;
+  updateBtn.disabled = checked === 0 || !newValue.value;
 
   document.querySelectorAll('.row-check').forEach(cb => {
     cb.closest('tr').classList.toggle('selected', cb.checked);
@@ -430,27 +449,30 @@ if (checkAll) {
 
 document.querySelectorAll('.row-check').forEach(cb => {
   cb.addEventListener('change', function() {
-    const total   = document.querySelectorAll('.row-check').length;
+    const total = document.querySelectorAll('.row-check').length;
     const checked = document.querySelectorAll('.row-check:checked').length;
     if (checkAll) checkAll.checked = checked === total;
     updateCount();
   });
 });
 
-if (newStatus) {
-  newStatus.addEventListener('change', updateCount);
+if (newValue) {
+  newValue.addEventListener('change', updateCount);
 }
 
 if (smsForm) {
   smsForm.addEventListener('submit', function(e) {
     const checked = document.querySelectorAll('.row-check:checked').length;
     if (checked === 0) { e.preventDefault(); return; }
-    if (!newStatus.value) {
+    if (!newValue.value) {
       e.preventDefault();
-      alert('Please select a status to set.');
+      alert('Please select a value to update.');
       return;
     }
-    if (!confirm(checked + ' record(s) will be set to "' + newStatus.value + '". Continue?')) {
+    const parts = newValue.value.split(':');
+    const actionType = parts[0];
+    const label = parts[1];
+    if (!confirm(checked + ' record(s) will be updated to "' + label + '". Continue?')) {
       e.preventDefault();
     }
   });
