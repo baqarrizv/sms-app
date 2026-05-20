@@ -253,6 +253,33 @@ try {
   .nav-link.danger { color: var(--error); }
   .nav-link.danger:hover { border-color: rgba(247,106,138,0.3); background: rgba(247,106,138,0.08); }
 
+  /* Dark/Light Toggle */
+  .theme-toggle {
+    width: 38px; height: 38px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text); font-size: 1.1rem;
+    transition: all 0.2s;
+  }
+  .theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* Light mode */
+  body.light {
+    --bg:       #f5f5f9;
+    --surface:  #ffffff;
+    --surface2: #eeeff4;
+    --border:   #dfe1e8;
+    --text:     #1a1a2e;
+    --muted:    #6b6b80;
+  }
+  body.light nav { background: rgba(245,245,249,0.85); }
+  body.light .nav-link:hover { background: rgba(0,0,0,0.03); }
+  body.light .nav-link.active { background: rgba(124,106,247,0.06); }
+  body.light .drop-zone:hover, body.light .drop-zone.dragover { background: rgba(124,106,247,0.04); }
+
   /* Main */
   main { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
 
@@ -548,6 +575,10 @@ try {
       <div class="avatar"><?= strtoupper(substr($user['name'], 0, 1)) ?></div>
       <span><?= htmlspecialchars($user['name']) ?></span>
     </div>
+    <button class="theme-toggle" id="themeToggle" title="Toggle theme">🌙</button>
+    <a href="logout" class="nav-link danger">Logout</a>
+  </div>
+    <button class="theme-toggle" id="themeToggle" title="Toggle theme">🌙</button>
     <a href="logout" class="nav-link danger">Logout</a>
   </div>
 </nav>
@@ -703,6 +734,20 @@ try {
 </main>
 
 <script>
+// Theme toggle
+(function() {
+  const saved = localStorage.getItem('theme');
+  if (saved === 'light') document.body.classList.add('light');
+  const btn = document.getElementById('themeToggle');
+  if (btn) btn.textContent = saved === 'light' ? '☀️' : '🌙';
+  btn?.addEventListener('click', () => {
+    document.body.classList.toggle('light');
+    const isLight = document.body.classList.contains('light');
+    localStorage.setItem('theme', isLight ? 'light' : 'dark');
+    btn.textContent = isLight ? '☀️' : '🌙';
+  });
+})();
+
 // File name display
 function updateFileName(input) {
   const badge = document.getElementById('fileBadge');

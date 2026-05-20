@@ -256,9 +256,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     color: var(--muted);
     font-size: 0.75rem;
   }
+
+  .theme-toggle {
+    position: fixed; top: 1rem; right: 1rem; z-index: 100;
+    width: 40px; height: 40px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 10px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    color: var(--text); font-size: 1.15rem;
+    transition: all 0.2s; backdrop-filter: blur(10px);
+  }
+  .theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+
+  body.light {
+    --bg:       #f5f5f9;
+    --surface:  #ffffff;
+    --surface2: #eeeff4;
+    --border:   #dfe1e8;
+    --text:     #1a1a2e;
+    --muted:    #6b6b80;
+  }
+  body.light .card { background: #ffffff; box-shadow: 0 30px 60px rgba(0,0,0,0.08); }
+  body.light .theme-toggle { background: rgba(255,255,255,0.8); border-color: rgba(0,0,0,0.08); }
+  body.light input[type="email"], body.light input[type="password"] { background: #f5f5f9; }
+  body.light .error-box { background: rgba(247,106,138,0.06); }
 </style>
 </head>
 <body>
+<button class="theme-toggle" id="themeToggle">🌙</button>
 <div class="orb orb-1"></div>
 <div class="orb orb-2"></div>
 
@@ -285,26 +311,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           </svg>
           <input type="email" name="email" placeholder="admin@gmail.com"
                  value="<?= htmlspecialchars($_POST['email'] ?? '') ?>" required autocomplete="email">
-        </div>
-      </div>
-
-      <div class="field">
-        <label>Password</label>
-        <div class="input-wrap">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-          </svg>
-          <input type="password" name="password" placeholder="••••••••" required autocomplete="current-password">
-        </div>
-      </div>
-
-      <button type="submit" class="btn-login">Login →</button>
-    </form>
-  </div>
-
-  <p class="footer-note">
-    First time? Run <a href="setup" style="color:var(--accent);text-decoration:none">setup</a> first
-  </p>
 </div>
+<script>
+(function() {
+  const saved = localStorage.getItem('theme');
+  if (saved === 'light') document.body.classList.add('light');
+  const btn = document.getElementById('themeToggle');
+  if (btn) btn.textContent = saved === 'light' ? '☀️' : '🌙';
+  btn?.addEventListener('click', () => {
+    document.body.classList.toggle('light');
+    const isLight = document.body.classList.contains('light');
+    localStorage.setItem('theme', isLight ? 'light' : 'dark');
+    btn.textContent = isLight ? '☀️' : '🌙';
+  });
+})();
+</script>
 </body>
 </html>
