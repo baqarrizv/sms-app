@@ -5,30 +5,49 @@ requireLogin();
 $user = currentUser();
 $flash = null;
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update_records') {
-    $ids = $_POST['selected_ids'] ?? [];
-    $newVal = $_POST['new_value'] ?? '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+    if ($_POST['action'] === 'update_records') {
+        $ids = $_POST['selected_ids'] ?? [];
+        $newVal = $_POST['new_value'] ?? '';
 
-    if (!empty($ids) && strpos($newVal, ':') !== false) {
-        list($col, $val) = explode(':', $newVal, 2);
+        if (!empty($ids) && strpos($newVal, ':') !== false) {
+            list($col, $val) = explode(':', $newVal, 2);
 
-        $validCols = [
-            'current_status' => ['pending', 'processing', 'sent', 'stop'],
-            'status' => ['active', 'inactive']
-        ];
+            $validCols = [
+                'current_status' => ['pending', 'processing', 'sent', 'stop'],
+                'status' => ['active', 'inactive']
+            ];
 
-        if (isset($validCols[$col]) && in_array($val, $validCols[$col])) {
-            $db = getDB();
-            $placeholders = implode(',', array_fill(0, count($ids), '?'));
-            $params = array_merge([$val], array_map('intval', $ids));
-            $stmt = $db->prepare("UPDATE sms SET $col = ?, activity_at = NOW() WHERE id IN ($placeholders)");
-            $stmt->execute($params);
-            $flash = ['type' => 'success', 'msg' => count($ids) . ' record(s) ' . str_replace('_', ' ', $col) . ' updated to ' . ucfirst($val) . '.'];
+            if (isset($validCols[$col]) && in_array($val, $validCols[$col])) {
+                $db = getDB();
+                $placeholders = implode(',', array_fill(0, count($ids), '?'));
+                $params = array_merge([$val], array_map('intval', $ids));
+                $stmt = $db->prepare("UPDATE sms SET $col = ?, activity_at = NOW() WHERE id IN ($placeholders)");
+                $stmt->execute($params);
+                $flash = ['type' => 'success', 'msg' => count($ids) . ' record(s) ' . str_replace('_', ' ', $col) . ' updated to ' . ucfirst($val) . '.'];
+            } else {
+                $flash = ['type' => 'error', 'msg' => 'Invalid value.'];
+            }
         } else {
-            $flash = ['type' => 'error', 'msg' => 'Invalid value.'];
+            $flash = ['type' => 'error', 'msg' => 'No records selected or no update value chosen.'];
         }
-    } else {
-        $flash = ['type' => 'error', 'msg' => 'No records selected or no update value chosen.'];
+    } elseif ($_POST['action'] === 'delete_duplicates') {
+        $db = getDB();
+        try {
+            // Find duplicate records: same number AND same message
+            // Keep the one with the smallest ID, delete the rest
+            $stmt = $db->prepare("
+                DELETE t1 FROM sms t1
+                INNER JOIN sms t2 ON t1.number = t2.number 
+                    AND t1.msg = t2.msg 
+                    AND t1.id > t2.id
+            ");
+            $stmt->execute();
+            $deletedCount = $stmt->rowCount();
+            $flash = ['type' => 'success', 'msg' => $deletedCount . ' duplicate record(s) deleted successfully.'];
+        } catch (PDOException $e) {
+            $flash = ['type' => 'error', 'msg' => 'Failed to delete duplicates: ' . $e->getMessage()];
+        }
     }
 }
 
@@ -310,7 +329,13 @@ function statusBadge(string $status): string {
       <div class="page-title">📋 SMS Records</div>
       <div class="page-sub">All inserted SMS records</div>
     </div>
-    <a href="dashboard" class="btn btn-primary">+ Upload New File</a>
+    <div style="display: flex; gap: 0.6rem; flex-wrap: wrap;">
+      <form method="POST" style="display: inline;" id="deleteDuplicatesForm">
+        <input type="hidden" name="action" value="delete_duplicates">
+        <button type="submit" class="btn btn-warning" title="Remove duplicate SMS records">🗑️ Remove Duplicates</button>
+      </form>
+      <a href="dashboard" class="btn btn-primary">+ Upload New File</a>
+    </div>
   </div>
 
   <?php if ($flash): ?>
@@ -486,6 +511,16 @@ function statusBadge(string $status): string {
     btn.textContent = isDark ? '🌙' : '☀️';
   });
 })();
+
+// Delete duplicates confirmation
+const deleteDuplicatesForm = document.getElementById('deleteDuplicatesForm');
+if (deleteDuplicatesForm) {
+  deleteDuplicatesForm.addEventListener('submit', function(e) {
+    if (!confirm('This will remove all duplicate SMS records (keeping the first occurrence of each). Are you sure?')) {
+      e.preventDefault();
+    }
+  });
+}
 
 const checkAll   = document.getElementById('checkAll');
 const selCount   = document.getElementById('selCount');
