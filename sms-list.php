@@ -65,9 +65,8 @@ $page     = min($page, $pages);
 $offset   = ($page - 1) * $perPage;
 
 $stmt = $db->prepare("
-    SELECT s.*, u.name AS user_name
+    SELECT s.*
     FROM sms s
-    LEFT JOIN users u ON u.id = s.activity_by
     WHERE $whereSQL
     ORDER BY s.id DESC
     LIMIT $perPage OFFSET $offset
@@ -258,7 +257,7 @@ function statusBadge(string $status): string {
 
   .td-id     { color: var(--muted); font-size: 0.85rem; }
   .td-number { font-weight: 600; letter-spacing: 0.02em; font-size: 0.95rem; }
-  .td-msg    { max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); font-size: 0.9rem; line-height: 1.4; }
+  .td-msg    { color: var(--muted); font-size: 0.55rem; color: var(--muted); line-height: 1.3; }
   .td-ref    { color: var(--muted); font-size: 0.85rem; font-style: italic; }
   .td-by     { color: var(--muted); font-size: 0.85rem; }
   .td-at     { color: var(--muted); font-size: 0.85rem; white-space: nowrap; }
@@ -381,7 +380,6 @@ function statusBadge(string $status): string {
               <th>Current Status</th>
               <th>Status</th>
               <th>Ref ID</th>
-              <th>By</th>
               <th>At</th>
             </tr>
           </thead>
@@ -397,7 +395,6 @@ function statusBadge(string $status): string {
               <td><?= statusBadge($r['current_status']) ?></td>
               <td><?= statusBadge($r['status']) ?></td>
               <td class="td-ref"><?= $r['sms_reference_id'] ? htmlspecialchars($r['sms_reference_id']) : '<span style="opacity:0.3">—</span>' ?></td>
-              <td class="td-by"><?= htmlspecialchars($r['user_name'] ?? '—') ?></td>
               <td class="td-at"><?= date('d M Y H:i', strtotime($r['activity_at'])) ?></td>
             </tr>
             <?php endforeach; ?>

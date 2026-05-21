@@ -85,7 +85,7 @@ while (true) {
     foreach ($records as $record) {
         $smsId = $record['id'];
         $number = $record['number'];
-        $message = $record['msg'];
+        $message = substr($record['msg'], 0, 160);
 
         logMessage("Sending to {$number} (ID: {$smsId})...");
 
