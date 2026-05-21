@@ -42,80 +42,122 @@ function sendSmsViaApi($to, $text) {
     return json_decode($response, true) ?: ['status' => 'error', 'message' => 'Invalid response', 'raw' => $response, 'http_code' => $httpCode];
 }
 
+function acquireCronLock(PDO $db, string $lockName, int $timeout = 1): bool {
+    $stmt = $db->prepare('SELECT GET_LOCK(?, ?)');
+    $stmt->execute([$lockName, $timeout]);
+    return (bool) $stmt->fetchColumn();
+}
+
+function releaseCronLock(PDO $db, string $lockName): void {
+    $stmt = $db->prepare('SELECT RELEASE_LOCK(?)');
+    $stmt->execute([$lockName]);
+}
+
 logMessage('Cron job started');
 logMessage('Rate limit: 10 SMS per batch, 300ms between each SMS, 3s between batches');
 
 $db = getDB();
 
-$updateStmt = $db->prepare("
-    UPDATE sms 
-    SET  
-        current_status = ?, 
-        sms_reference_id = ?, 
-        activity_at = NOW() 
-    WHERE id = ?
-");
+$lockName = 'send_sms_cron_lock';
+if (!acquireCronLock($db, $lockName, 1)) {
+    logMessage('Another cron instance is already running. Exiting.');
+    exit;
+}
 
-$totalSent = 0;
-$totalFailed = 0;
-$batchCount = 0;
-
-while (true) {
-    $stmt = $db->prepare("
-        SELECT id, number, msg FROM sms 
-        WHERE current_status = 'pending' AND status = 'active'
-        ORDER BY id ASC 
-        LIMIT ?
+try {
+    $updateStmt = $db->prepare("
+        UPDATE sms 
+        SET  
+            current_status = ?, 
+            sms_reference_id = ?, 
+            activity_at = NOW() 
+        WHERE id = ?
     ");
-    $stmt->bindValue(1, BATCH_SIZE, PDO::PARAM_INT);
-    $stmt->execute();
-    $records = $stmt->fetchAll();
 
-    if (empty($records)) {
-        logMessage('No active pending SMS found. Exiting.');
-        break;
-    }
+    $totalSent = 0;
+    $totalFailed = 0;
+    $batchCount = 0;
 
-    $batchCount++;
-    logMessage("Batch #{$batchCount}: Processing " . count($records) . " SMS records");
+    while (true) {
+        $batchClaimToken = uniqid('cron_', true);
 
-    $batchSent = 0;
-    $batchFailed = 0;
+        $claimStmt = $db->prepare("
+            UPDATE sms
+            SET current_status = 'processing', sms_reference_id = ?, activity_at = NOW()
+            WHERE id IN (
+                SELECT id FROM (
+                    SELECT id FROM sms
+                    WHERE current_status = 'pending' AND status = 'active'
+                    ORDER BY id ASC
+                    LIMIT ?
+                ) AS t
+            )
+        ");
+        $claimStmt->bindValue(1, $batchClaimToken, PDO::PARAM_STR);
+        $claimStmt->bindValue(2, BATCH_SIZE, PDO::PARAM_INT);
+        $claimStmt->execute();
 
-    foreach ($records as $record) {
-        $smsId = $record['id'];
-        $number = $record['number'];
-        $message = substr($record['msg'], 0, 160);
-
-        logMessage("Sending to {$number} (ID: {$smsId})...");
-
-        $updateStmt->execute(['processing', null, $smsId]);
-
-        $result = sendSmsViaApi($number, $message);
-
-        $apiStatus = $result['status'] ?? 'error';
-        $messageId = $result['messageId'] ?? $result['message_id'] ?? $result['id'] ?? null;
-        $statusCode = $result['statusCode'] ?? null;
-        $responseMsg = $result['message'] ?? json_encode($result);
-
-        if ($statusCode == 200 || $apiStatus === 'accepted' || $apiStatus === 'success' || !empty($messageId)) {
-            $updateStmt->execute(['sent', $messageId, $smsId]);
-            logMessage("✓ Sent to {$number} | Ref: {$messageId}");
-            $batchSent++;
-        } else {
-            $updateStmt->execute(['failed', 'ERROR: ' . $responseMsg, $smsId]);
-            logMessage("✗ Failed for {$number} | Reason: {$responseMsg}");
-            $batchFailed++;
+        if ($claimStmt->rowCount() === 0) {
+            logMessage('No active pending SMS found. Exiting.');
+            break;
         }
 
-        usleep(DELAY_BETWEEN_SMS);
+        $stmt = $db->prepare("
+            SELECT id, number, msg FROM sms
+            WHERE current_status = 'processing' AND sms_reference_id = ? AND status = 'active'
+            ORDER BY id ASC
+        ");
+        $stmt->execute([$batchClaimToken]);
+        $records = $stmt->fetchAll();
+
+        if (empty($records)) {
+            logMessage('No claimed SMS records found. Exiting.');
+            break;
+        }
+
+        $batchCount++;
+        logMessage("Batch #{$batchCount}: Processing " . count($records) . " SMS records");
+
+        $batchSent = 0;
+        $batchFailed = 0;
+
+        foreach ($records as $record) {
+            $smsId = $record['id'];
+            $number = $record['number'];
+            $message = substr($record['msg'], 0, 160);
+
+            logMessage("Sending to {$number} (ID: {$smsId})...");
+
+            $updateStmt->execute(['processing', null, $smsId]);
+
+            $result = sendSmsViaApi($number, $message);
+
+            $apiStatus = $result['status'] ?? 'error';
+            $messageId = $result['messageId'] ?? $result['message_id'] ?? $result['id'] ?? null;
+            $statusCode = $result['statusCode'] ?? null;
+            $responseMsg = $result['message'] ?? json_encode($result);
+
+            if ($statusCode == 200 || $apiStatus === 'accepted' || $apiStatus === 'success' || !empty($messageId)) {
+                $updateStmt->execute(['sent', $messageId, $smsId]);
+                logMessage("✓ Sent to {$number} | Ref: {$messageId}");
+                $batchSent++;
+            } else {
+                $updateStmt->execute(['failed', 'ERROR: ' . $responseMsg, $smsId]);
+                logMessage("✗ Failed for {$number} | Reason: {$responseMsg}");
+                $batchFailed++;
+            }
+
+            usleep(DELAY_BETWEEN_SMS);
+        }
+
+        $totalSent += $batchSent;
+        $totalFailed += $batchFailed;
+        logMessage("Batch #{$batchCount} finished. Sent: {$batchSent}, Failed: {$batchFailed} | Totals: {$totalSent} sent, {$totalFailed} failed");
+
+        usleep(DELAY_BETWEEN_BATCHES);
     }
-
-    $totalSent += $batchSent;
-    $totalFailed += $batchFailed;
-    logMessage("Batch #{$batchCount} finished. Sent: {$batchSent}, Failed: {$batchFailed} | Totals: {$totalSent} sent, {$totalFailed} failed");
-
-    usleep(DELAY_BETWEEN_BATCHES);
+} finally {
+    releaseCronLock($db, $lockName);
 }
 
 logMessage("Cron job finished. Total Sent: {$totalSent}, Total Failed: {$totalFailed}");

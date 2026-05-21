@@ -370,6 +370,7 @@ function statusBadge(string $status): string {
         <option value="processing" <?= $cStatusFilter === 'processing' ? 'selected' : '' ?>>Processing</option>
         <option value="sent"       <?= $cStatusFilter === 'sent'       ? 'selected' : '' ?>>Sent</option>
         <option value="stop"       <?= $cStatusFilter === 'stop'       ? 'selected' : '' ?>>Stopped</option>
+        <option value="failed"       <?= $cStatusFilter === 'failed'       ? 'selected' : '' ?>>Failed</option>
       </select>
     </div>
     <button type="submit" class="btn btn-primary">Filter</button>
